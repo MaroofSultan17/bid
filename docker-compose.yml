@@ -1,0 +1,40 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: taskbid
+      POSTGRES_USER: taskbid
+      POSTGRES_PASSWORD: secret
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskbid"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  backend:
+    build: { context: ./apps/backend, dockerfile: Dockerfile.dev }
+    ports: ["3001:3001"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+    environment:
+      DATABASE_URL: postgres://taskbid:secret@postgres:5432/taskbid
+      REDIS_URL: redis://redis:6379
+      PORT: 3001
+    volumes: [./apps/backend/src:/app/src]
+
+  frontend:
+    build: { context: ./apps/frontend, dockerfile: Dockerfile.dev }
+    ports: ["5173:5173"]
+    depends_on: [backend]
+    environment:
+      VITE_API_URL: http://localhost:3001
+
+volumes:
+  pgdata:
