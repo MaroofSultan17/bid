@@ -5,13 +5,23 @@ import { useUserStore } from '../../core/store/userStore';
 import { notifySuccess, notifyError } from '../../components/Toast';
 import { UserService } from '../../services/UserService';
 
-export const BidForm: React.FC<{ taskId: string }> = ({ taskId }) => {
+export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
+    taskId,
+    taskCreatorId,
+}) => {
     const [hours, setHours] = useState('');
     const { activeUser, setActiveUser } = useUserStore();
     const qc = useQueryClient();
 
     const mutation = useMutation({
-        mutationFn: () => BidService.placeBid(taskId, { hours_offered: Number(hours) }),
+        mutationFn: () => {
+            if (!activeUser) throw new Error('Please select a user first');
+            if (activeUser.id === taskCreatorId) throw new Error('You cannot bid on your own task');
+            return BidService.placeBid(taskId, {
+                hours_offered: Number(hours),
+                user_id: activeUser.id,
+            });
+        },
         onSuccess: async () => {
             notifySuccess('Bid placed successfully');
             setHours('');
@@ -23,7 +33,10 @@ export const BidForm: React.FC<{ taskId: string }> = ({ taskId }) => {
             }
         },
         onError: async (e: any) => {
-            notifyError(e.message);
+            const message = e.message.includes('ERR_SELF_BID')
+                ? 'You cannot bid on your own task'
+                : e.message;
+            notifyError(message);
             // If capacity error, refresh user info
             if (activeUser) {
                 const updatedUser = await UserService.getWorkload(activeUser.id);
@@ -32,7 +45,16 @@ export const BidForm: React.FC<{ taskId: string }> = ({ taskId }) => {
         },
     });
 
-    if (!activeUser) return null;
+    if (!activeUser || activeUser.id === taskCreatorId) {
+        if (activeUser?.id === taskCreatorId) {
+            return (
+                <div className="p-8 bg-[hsl(var(--secondary))/0.5] border border-[hsl(var(--primary))/0.1] rounded-3xl text-center opacity-70 italic text-sm">
+                    You are the creator of this task.
+                </div>
+            );
+        }
+        return null;
+    }
 
     const isOverCapacity = Number(hours) > activeUser.remainingCapacityHours;
 

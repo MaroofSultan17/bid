@@ -13,4 +13,5 @@ export interface BidResponse {
 
 export interface BidCreateRequest {
     hours_offered: number;
+    user_id: string;
 }

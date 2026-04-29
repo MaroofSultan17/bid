@@ -42,4 +42,5 @@ export interface TaskCreateRequest {
 
 export interface TaskStatusUpdateRequest {
     status: TaskStatus;
+    updated_by: string;
 }

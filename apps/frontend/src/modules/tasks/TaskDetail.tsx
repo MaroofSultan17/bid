@@ -7,10 +7,12 @@ import { BidList } from '../bids/BidList';
 import { useSSE } from '../../core/sse/useSSE';
 import { notifySuccess, notifyError } from '../../components/Toast';
 import { TaskStatus } from '../../types/dto/task.dto';
+import { useUserStore } from '../../core/store/userStore';
 
 export const TaskDetail: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { activeUser } = useUserStore();
     const qc = useQueryClient();
 
     const { data: task, isLoading } = useQuery({
@@ -33,10 +35,14 @@ export const TaskDetail: React.FC = () => {
     });
 
     const advanceStatus = useMutation({
-        mutationFn: (status: TaskStatus) => TaskService.advanceStatus(id!, { status }),
+        mutationFn: (status: TaskStatus) => {
+            if (!activeUser) throw new Error('Please select a user first');
+            return TaskService.advanceStatus(id!, { status, updated_by: activeUser.id });
+        },
         onSuccess: () => {
             notifySuccess('Status advanced');
             qc.invalidateQueries({ queryKey: ['tasks', id] });
+            qc.invalidateQueries({ queryKey: ['tasks'] }); // Also refresh the board
         },
         onError: (e: any) => notifyError(e.message),
     });
@@ -118,6 +124,14 @@ export const TaskDetail: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-4 mt-8">
+                    {task.status === 'draft' && (
+                        <button
+                            onClick={() => advanceStatus.mutate('open')}
+                            className="bg-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-[hsl(var(--primary))/0.2]"
+                        >
+                            Publish Task
+                        </button>
+                    )}
                     {task.status === 'open' && (
                         <button
                             onClick={() => advanceStatus.mutate('bidding_closed')}
@@ -142,6 +156,22 @@ export const TaskDetail: React.FC = () => {
                             Start Task
                         </button>
                     )}
+                    {task.status === 'in_progress' && (
+                        <button
+                            onClick={() => advanceStatus.mutate('review')}
+                            className="bg-amber-500 text-black px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-500/20"
+                        >
+                            Submit for Review
+                        </button>
+                    )}
+                    {task.status === 'review' && (
+                        <button
+                            onClick={() => advanceStatus.mutate('done')}
+                            className="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-500/20"
+                        >
+                            Complete Task
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -157,7 +187,7 @@ export const TaskDetail: React.FC = () => {
                         Place Your Bid
                     </h3>
                     {task.status === 'open' ? (
-                        <BidForm taskId={task.id} />
+                        <BidForm taskId={task.id} taskCreatorId={task.createdBy} />
                     ) : (
                         <div className="p-8 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl text-center opacity-50 italic text-sm">
                             Bidding is currently closed for this task.
