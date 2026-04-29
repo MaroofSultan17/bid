@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { BidService } from './bid.service';
+import { BidService } from '../../services/BidService';
 import { useUserStore } from '../../core/store/userStore';
 import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 import { notifySuccess, notifyError } from '../../components/Toast';
 
 export const BidForm: React.FC<{ taskId: string }> = ({ taskId }) => {
     const [hours, setHours] = useState('');
     const { currentUserId } = useUserStore();
     const { token } = useJwt();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
     const qc = useQueryClient();
 
     const mut = useMutation({

@@ -1,12 +1,14 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TaskService } from './task.service';
+import { TaskService } from '../../services/TaskService';
 import { TaskCard } from './TaskCard';
 import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 
 export const TaskBoard: React.FC = () => {
     const { token } = useJwt();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
 
     const { data: tasks, isLoading } = useQuery({
         queryKey: ['tasks', token],

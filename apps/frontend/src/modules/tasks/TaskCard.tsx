@@ -1,8 +1,8 @@
 import React from 'react';
-import { TaskGetResponseDTO } from '../../types/dto/task.dto';
+import { TaskGetResponseTaskDTO } from '../../types/dto/task.dto';
 import { Link } from 'react-router-dom';
 
-export const TaskCard: React.FC<{ task: TaskGetResponseDTO }> = ({ task }) => {
+export const TaskCard: React.FC<{ task: TaskGetResponseTaskDTO }> = ({ task }) => {
     return (
         <div className="p-4 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))] rounded-xl mb-4 hover:scale-105 transition-transform duration-200 cursor-pointer flex flex-col justify-between h-full">
             <div>

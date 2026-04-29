@@ -1,11 +1,13 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardService } from './dashboard.service';
+import { DashboardService } from '../../services/DashboardService';
 import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 
 export const Dashboard: React.FC = () => {
     const { token } = useJwt();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
 
     const { data, isLoading } = useQuery({
         queryKey: ['dashboardStats', token],

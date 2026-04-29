@@ -1,3 +1,5 @@
+import { PaginationDTO } from './pagination.dto';
+
 export interface TaskGetResponseTaskDTO {
     id: string;
     title: string;
@@ -13,7 +15,7 @@ export interface TaskGetResponseTaskDTO {
 
 export interface TaskGetResponseDTO {
     tasks: TaskGetResponseTaskDTO[];
-    pagination: Pagination;
+    pagination: PaginationDTO;
 }
 
 export interface TaskCreateRequestDTO {

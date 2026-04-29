@@ -1,11 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { TaskService } from './task.service';
+import { TaskService } from '../../services/TaskService';
 import { BidForm } from '../bids/BidForm';
 import { BidList } from '../bids/BidList';
 import { useUserStore } from '../../core/store/userStore';
 import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 import { notifySuccess, notifyError } from '../../components/Toast';
 
 export const TaskDetail: React.FC = () => {
@@ -13,7 +14,8 @@ export const TaskDetail: React.FC = () => {
     const navigate = useNavigate();
     const { currentUserId } = useUserStore();
     const { token } = useJwt();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
     const qc = useQueryClient();
 
     const { data: task, isLoading } = useQuery({

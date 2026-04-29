@@ -1,13 +1,15 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { UserService } from './user.service';
+import { UserService } from '../../services/UserService';
 import { useUserStore } from '../../core/store/userStore';
 import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 
 export const UserSwitcher: React.FC = () => {
     const { currentUserId, setCurrentUser } = useUserStore();
     const { token: jwtToken } = useJwt();
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
 
     const { data: users } = useQuery({
         queryKey: ['users', jwtToken],
@@ -23,12 +25,12 @@ export const UserSwitcher: React.FC = () => {
                 className="bg-[hsl(var(--background))] border border-[hsl(var(--primary))] p-2 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent))]"
                 value={currentUserId || ''}
                 onChange={(e) => {
-                    const u = users?.users.find((u: any) => u.id === e.target.value);
+                    const u = users?.find((u: any) => u.id === e.target.value);
                     if (u) setCurrentUser(u.id, jwtToken || '');
                 }}
             >
                 <option value="">-- Choose User --</option>
-                {users?.users?.map((u: any) => (
+                {users?.map((u: any) => (
                     <option key={u.id} value={u.id}>
                         {u.name} ({u.email})
                     </option>

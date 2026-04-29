@@ -1,12 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-
-interface JwtPayload {
-    id: string;
-    email: string;
-    exp: number;
-    iat: number;
-}
+import { JwtPayload } from '../types/jwt';
 
 interface JwtContextType {
     token?: string;
@@ -37,14 +31,17 @@ export function JwtProvider({ children }: { children: React.ReactNode }) {
         window.location.href = '/login';
     }, [timeoutId]);
 
-    const login = useCallback((token: string, refreshToken: string, refreshExpiration: number) => {
-        Cookies.set('token', token);
-        Cookies.set('refresh_token', refreshToken, {
-            expires: new Date(refreshExpiration * 1000),
-        });
-        setToken(token);
-        setRefreshToken(refreshToken);
-    }, []);
+    const login = useCallback(
+        (token: string, refreshToken: string, refreshExpiration: number) => {
+            Cookies.set('token', token);
+            Cookies.set('refresh_token', refreshToken, {
+                expires: new Date(refreshExpiration * 1000),
+            });
+            setToken(token);
+            setRefreshToken(refreshToken);
+        },
+        []
+    );
 
     const isTokenValid = () => {
         if (!token) return false;
@@ -116,19 +113,23 @@ export function JwtProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
-function getPayload(token?: string): JwtPayload | undefined {
+export function getPayload(token?: string): JwtPayload | undefined {
     try {
         if (!token) return undefined;
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         return JSON.parse(window.atob(base64));
     } catch (e) {
+        console.error(e);
         return undefined;
     }
 }
 
 export function useJwt() {
     const context = useContext(JwtContext);
-    if (!context) throw new Error('useJwt must be used within a JwtProvider');
+    if (!context)
+        throw new Error(
+            'useJwt must be used within a JwtProvider. Wrap a parent component in <JwtProvider> to fix this error.'
+        );
     return context;
 }

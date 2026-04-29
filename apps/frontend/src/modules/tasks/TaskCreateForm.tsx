@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { TaskService } from './task.service';
+import { TaskService } from '../../services/TaskService';
 import { useUserStore } from '../../core/store/userStore';
+import { useJwt } from '../../contexts/JwtContext';
+import { useEnv } from '../../contexts/EnvContext';
 import { notifySuccess, notifyError } from '../../components/Toast';
 
 export const TaskCreateForm: React.FC = () => {
     const [title, setTitle] = useState('');
     const [complexity, setComplexity] = useState(1);
     const { currentUserId } = useUserStore();
+    const { token } = useJwt();
+    const env = useEnv();
+    const baseUrl = env.VITE_API_BASE_URL || '/api';
     const qc = useQueryClient();
 
     const mut = useMutation({
         mutationFn: () =>
-            new TaskService().createTask({ title, complexity, created_by: currentUserId! }),
+            new TaskService(baseUrl, token!).createTask({
+                title,
+                complexity,
+                created_by: currentUserId!,
+            }),
         onSuccess: () => {
             notifySuccess('Task Created successfully');
             setTitle('');
