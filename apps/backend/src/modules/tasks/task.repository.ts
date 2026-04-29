@@ -35,7 +35,7 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)    AS "lowestBid"
+             MIN(b.hours_offered)::float    AS "lowestBid"
       FROM   tasks t
       LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
       WHERE  t.id = ?
@@ -52,7 +52,7 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)    AS "lowestBid"
+             MIN(b.hours_offered)::float    AS "lowestBid"
       FROM   tasks t
       LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
     `;

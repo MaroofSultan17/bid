@@ -7,7 +7,7 @@ export class UserRepository {
     async findAll(page: number, limit: number): Promise<UserRow[]> {
         const offset = (page - 1) * limit;
         const records = await this.db.raw(
-            'SELECT id, name, email, hourly_rate AS "hourlyRate", current_workload_hours AS "currentWorkloadHours", max_capacity_hours AS "maxCapacityHours" FROM users ORDER BY created_at ASC LIMIT ? OFFSET ?',
+            'SELECT id, name, email, CAST(hourly_rate AS FLOAT) AS "hourlyRate", CAST(current_workload_hours AS FLOAT) AS "currentWorkloadHours", CAST(max_capacity_hours AS FLOAT) AS "maxCapacityHours", CAST((max_capacity_hours - current_workload_hours) AS FLOAT) AS "remainingCapacityHours" FROM users ORDER BY created_at ASC LIMIT ? OFFSET ?',
             [limit, offset]
         );
         return records.rows;
@@ -15,7 +15,7 @@ export class UserRepository {
 
     async findById(id: string): Promise<UserRow | null> {
         const records = await this.db.raw(
-            'SELECT id, name, email, hourly_rate AS "hourlyRate", current_workload_hours AS "currentWorkloadHours", max_capacity_hours AS "maxCapacityHours" FROM users WHERE id = ?',
+            'SELECT id, name, email, CAST(hourly_rate AS FLOAT) AS "hourlyRate", CAST(current_workload_hours AS FLOAT) AS "currentWorkloadHours", CAST(max_capacity_hours AS FLOAT) AS "maxCapacityHours", CAST((max_capacity_hours - current_workload_hours) AS FLOAT) AS "remainingCapacityHours" FROM users WHERE id = ?',
             [id]
         );
         return records.rows[0] || null;
@@ -31,7 +31,7 @@ export class UserRepository {
 
     async lockForUpdate(id: string, trx: Knex.Transaction): Promise<UserRow | null> {
         const records = await trx.raw(
-            'SELECT id, name, email, hourly_rate AS "hourlyRate", current_workload_hours AS "currentWorkloadHours", max_capacity_hours AS "maxCapacityHours" FROM users WHERE id = ? FOR UPDATE',
+            'SELECT id, name, email, CAST(hourly_rate AS FLOAT) AS "hourlyRate", CAST(current_workload_hours AS FLOAT) AS "currentWorkloadHours", CAST(max_capacity_hours AS FLOAT) AS "maxCapacityHours", CAST((max_capacity_hours - current_workload_hours) AS FLOAT) AS "remainingCapacityHours" FROM users WHERE id = ? FOR UPDATE',
             [id]
         );
         return records.rows[0] || null;

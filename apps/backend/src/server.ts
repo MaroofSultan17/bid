@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import app from './app';
 import pino from 'pino';
 import knex from './core/db/knex';
-import 'dotenv/config';
+import './core/queue/workers/notification.worker';
 
 const logger = pino({ name: 'server' });
 const PORT = process.env.PORT || 3001;
