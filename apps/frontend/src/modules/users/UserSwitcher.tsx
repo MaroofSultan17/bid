@@ -2,39 +2,64 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserService } from '../../services/UserService';
 import { useUserStore } from '../../core/store/userStore';
-import { useJwt } from '../../contexts/JwtContext';
-import { useEnv } from '../../contexts/EnvContext';
 
 export const UserSwitcher: React.FC = () => {
-    const { currentUserId, setCurrentUser } = useUserStore();
-    const { token: jwtToken } = useJwt();
-    const env = useEnv();
-    const baseUrl = env.VITE_API_BASE_URL || '/api';
+    const { activeUser, setActiveUser, setUsers, users } = useUserStore();
 
-    const { data: users } = useQuery({
-        queryKey: ['users', jwtToken],
-        queryFn: () => new UserService(baseUrl, jwtToken || '').getUsers(),
+    const { isLoading } = useQuery({
+        queryKey: ['users'],
+        queryFn: async () => {
+            const data = await UserService.getUsers();
+            if (!Array.isArray(data)) return [];
+
+            setUsers(data);
+
+            const currentActive = useUserStore.getState().activeUser;
+            if (currentActive) {
+                const updated = data.find((u) => u.id === currentActive.id);
+                if (updated) setActiveUser(updated);
+            } else if (data.length > 0) {
+                setActiveUser(data[0]);
+            }
+
+            return data;
+        },
     });
 
+    if (isLoading)
+        return (
+            <div className="animate-pulse w-32 h-10 bg-[hsl(var(--secondary))] rounded-lg"></div>
+        );
+
     return (
-        <div className="p-4 bg-[hsl(var(--secondary))] rounded-xl mb-6 flex gap-4 items-center border border-[hsl(var(--primary))]">
-            <label className="font-bold text-[hsl(var(--primary))] uppercase text-xs">
-                Simulated Identity:
-            </label>
+        <div className="flex items-center gap-4 bg-[hsl(var(--secondary))/0.5] p-1.5 pl-4 rounded-2xl border border-[hsl(var(--primary))/0.1]">
+            <div className="text-right hidden sm:block leading-none">
+                <p className="text-[9px] font-black opacity-40 uppercase tracking-[0.2em] mb-1">
+                    Simulated As
+                </p>
+                {activeUser && (
+                    <p className="text-xs font-black text-[hsl(var(--accent))]">
+                        {activeUser.remainingCapacityHours}h LEFT
+                    </p>
+                )}
+            </div>
             <select
-                className="bg-[hsl(var(--background))] border border-[hsl(var(--primary))] p-2 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent))]"
-                value={currentUserId || ''}
+                className="bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.1] px-4 py-2 rounded-xl text-sm font-black text-white focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all cursor-pointer shadow-inner"
+                value={activeUser?.id || ''}
                 onChange={(e) => {
-                    const u = users?.find((u: any) => u.id === e.target.value);
-                    if (u) setCurrentUser(u.id, jwtToken || '');
+                    const u = users.find((u) => u.id === e.target.value);
+                    if (u) setActiveUser(u);
                 }}
             >
-                <option value="">-- Choose User --</option>
-                {users?.map((u: any) => (
-                    <option key={u.id} value={u.id}>
-                        {u.name} ({u.email})
-                    </option>
-                ))}
+                <option value="" disabled>
+                    -- Switch User --
+                </option>
+                {Array.isArray(users) &&
+                    users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                            {u.name}
+                        </option>
+                    ))}
             </select>
         </div>
     );

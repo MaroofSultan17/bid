@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -6,22 +7,43 @@ services:
       POSTGRES_DB: taskbid
       POSTGRES_USER: taskbid
       POSTGRES_PASSWORD: secret
-    volumes: [pgdata:/var/lib/postgresql/data]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskbid"]
+      interval: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
 
   backend:
-    build: { context: ./apps/backend, dockerfile: Dockerfile }
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgres://taskbid:secret@postgres:5432/taskbid
       REDIS_URL: redis://redis:6379
       PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   frontend:
-    build: { context: ./apps/frontend, dockerfile: Dockerfile }
-    ports: ["80:80"]
-    depends_on: [backend]
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

@@ -1,37 +1,8 @@
-import { ApiResponse } from '../core/types';
+import { apiClient } from '../core/api/apiClient';
 import { DashboardStatsResponseDTO } from '../types/dto/dashboard.dto';
 
-export class DashboardService {
-    constructor(
-        private publicApiBaseUrl: string,
-        private token: string
-    ) {}
-
+export const DashboardService = {
     async getStats(): Promise<DashboardStatsResponseDTO> {
-        const url = new URL(`${this.publicApiBaseUrl}/dashboard/stats`);
-
-        const json = fetch(url.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${this.token}`,
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((result) => {
-                if (result.ok) {
-                    return result
-                        .json()
-                        .then((res: ApiResponse<DashboardStatsResponseDTO>) => res.data);
-                }
-                return result.json().then((errorData) => {
-                    throw new Error(errorData.message);
-                });
-            })
-            .catch((error) => {
-                throw new Error(error);
-            });
-
-        return json;
-    }
-}
+        return apiClient.get('/dashboard/stats');
+    },
+};
