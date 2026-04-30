@@ -28,41 +28,43 @@ export const TaskBoard: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             <div className="flex justify-between items-center">
-                <h1 className="text-4xl font-black tracking-tight">TASK BOARD</h1>
+                <h1 className="text-4xl font-black tracking-tighter text-white">Task Board</h1>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))] hover:text-black text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-[hsl(var(--primary))/0.2] flex items-center gap-2"
+                    className="bg-[hsl(var(--primary))] hover:bg-white hover:text-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-blue-500/20 flex items-center gap-3 group active:scale-95"
                 >
-                    <span className="text-xl">+</span> New Task
+                    <span className="text-xl group-hover:rotate-90 transition-transform duration-300">+</span> New Task
                 </button>
             </div>
 
-            <div className="flex gap-6 overflow-x-auto pb-8 items-start snap-x scroll-smooth scrollbar-hide">
+            <div className="grid grid-flow-col auto-cols-[calc((100%-4rem)/3)] gap-8 overflow-x-auto pb-10 items-start snap-x snap-mandatory">
                 {TASK_STATUS_ORDER.map((status) => (
                     <div
                         key={status}
-                        className="flex flex-col gap-4 w-[350px] flex-shrink-0 snap-start"
+                        className="flex flex-col gap-6 w-full snap-start"
                     >
-                        <div className="flex items-center justify-between px-4">
-                            <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_10px] shadow-[hsl(var(--primary))]"></div>
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">
+                        <div className="flex items-center justify-between px-5">
+                            <div className="flex items-center gap-3">
+                                <div className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_15px_rgba(62,62,244,0.8)]"></div>
+                                <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.3em]">
                                     {status.replace('_', ' ')}
                                 </h3>
                             </div>
-                            <span className="bg-[hsl(var(--secondary))] border border-white/5 text-[hsl(var(--primary))] px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+                            <span className="bg-white/[0.05] px-3 py-1 rounded-xl text-[10px] font-black text-slate-500 border border-white/[0.05]">
                                 {tasksByStatus(status).length}
                             </span>
                         </div>
-                        <div className="flex flex-col gap-4 min-h-[100px] rounded-3xl bg-white/[0.02] p-2 border border-white/[0.02]">
+                        <div className="flex flex-col gap-5 h-[calc(100vh-340px)] overflow-y-auto rounded-[40px] glass p-4 border border-white/[0.05] custom-scrollbar">
                             {tasksByStatus(status).map((task) => (
-                                <TaskCard key={task.id} task={task} />
+                                <div key={task.id} className="flex-shrink-0">
+                                    <TaskCard task={task} />
+                                </div>
                             ))}
                             {tasksByStatus(status).length === 0 && (
-                                <div className="h-20 flex items-center justify-center border-2 border-dashed border-white/5 rounded-2xl">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-20">
+                                <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/[0.03] rounded-[32px] py-20">
+                                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-[0.3em]">
                                         Empty
                                     </span>
                                 </div>

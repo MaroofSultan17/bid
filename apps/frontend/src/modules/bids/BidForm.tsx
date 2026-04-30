@@ -47,7 +47,7 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
     if (!activeUser || activeUser.id === taskCreatorId) {
         if (activeUser?.id === taskCreatorId) {
             return (
-                <div className="p-8 bg-[hsl(var(--secondary))/0.5] border border-[hsl(var(--primary))/0.1] rounded-3xl text-center opacity-70 italic text-sm">
+                <div className="p-8 glass rounded-3xl text-center italic text-sm text-slate-400">
                     You are the creator of this task.
                 </div>
             );
@@ -58,28 +58,30 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
     const isOverCapacity = Number(hours) > activeUser.remainingCapacityHours;
 
     return (
-        <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl space-y-6">
-            <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+        <div className="bg-[hsl(var(--accent))] border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[hsl(var(--primary))] opacity-5 blur-3xl -mr-16 -mt-16"></div>
+            
+            <div className="flex justify-between items-center relative z-10">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     Your Capacity
                 </span>
-                <span className="text-sm font-black text-[hsl(var(--accent))]">
+                <span className="text-sm font-black text-white">
                     {activeUser.remainingCapacityHours}h available
                 </span>
             </div>
 
-            <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest opacity-50">
+            <div className="space-y-3 relative z-10">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     Hours Required
                 </label>
                 <div className="relative">
                     <input
                         type="number"
                         min={1}
-                        className={`w-full bg-[hsl(var(--background))] border p-4 rounded-2xl focus:outline-none focus:ring-2 transition-all font-black text-2xl text-white ${
+                        className={`w-full bg-white/10 border p-4 rounded-2xl focus:outline-none focus:ring-2 transition-all font-black text-2xl text-white backdrop-blur-sm ${
                             isOverCapacity || Number(hours) < 0
                                 ? 'border-red-500/50 focus:ring-red-500'
-                                : 'border-[hsl(var(--primary))/0.2] focus:ring-[hsl(var(--primary))]'
+                                : 'border-white/10 focus:ring-[hsl(var(--primary))]'
                         }`}
                         placeholder="0"
                         value={hours}
@@ -89,12 +91,12 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
                             setHours(val);
                         }}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black opacity-20 text-xl">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-white/10 text-xl pointer-events-none">
                         HOURS
                     </span>
                 </div>
                 {isOverCapacity && (
-                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-tight">
+                    <p className="text-red-400 text-[10px] font-bold uppercase tracking-tight">
                         Exceeds your remaining capacity!
                     </p>
                 )}
@@ -103,7 +105,7 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
             <button
                 onClick={() => mutation.mutate()}
                 disabled={mutation.isPending || !hours || isOverCapacity}
-                className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))] hover:text-black text-white p-4 rounded-2xl font-black transition-all shadow-xl shadow-[hsl(var(--primary))/0.2] disabled:opacity-50 uppercase tracking-widest"
+                className="w-full bg-[hsl(var(--primary))] hover:bg-white hover:text-[hsl(var(--primary))] text-white p-4 rounded-2xl font-black transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50 uppercase tracking-widest relative z-10"
             >
                 {mutation.isPending ? 'Placing Bid...' : 'Submit Bid'}
             </button>

@@ -53,54 +53,33 @@ export const Dashboard: React.FC = () => {
         hours: Number(item.avgHours).toFixed(1),
     }));
 
-    const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#10b981', '#f59e0b', '#ef4444'];
+    const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#3b82f6', '#1e293b'];
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-end">
-                <h1 className="text-4xl font-black tracking-tight">PLATFORM DASHBOARD</h1>
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="justify-between items-end hidden md:flex">
+                <h1 className="text-4xl font-black tracking-tighter text-white">Platform Dashboard</h1>
 
                 {queueStats && (
-                    <div className="flex gap-4 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] px-4 py-2 rounded-2xl shadow-sm">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase opacity-40">
-                                Queue
-                            </span>
-                            <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
-                                Notifications
-                            </span>
-                        </div>
-                        <div className="w-px h-6 bg-white/5 self-center"></div>
-                        <div className="flex gap-3">
-                            <div className="flex flex-col items-center">
-                                <span className="text-[8px] font-black uppercase opacity-40">
-                                    Wait
-                                </span>
-                                <span
-                                    className={`text-xs font-black ${queueStats.stats.waiting > 0 ? 'text-amber-500' : 'text-white'}`}
-                                >
-                                    {queueStats.stats.waiting}
-                                </span>
+                    <div className="flex gap-4">
+                        <div className="glass px-6 py-3 rounded-2xl flex items-center gap-6">
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Queue</span>
+                                <span className="text-sm font-black text-white">Notifications</span>
                             </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[8px] font-black uppercase opacity-40">
-                                    Active
-                                </span>
-                                <span
-                                    className={`text-xs font-black ${queueStats.stats.active > 0 ? 'text-[hsl(var(--primary))]' : 'text-white'}`}
-                                >
-                                    {queueStats.stats.active}
-                                </span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[8px] font-black uppercase opacity-40">
-                                    Fail
-                                </span>
-                                <span
-                                    className={`text-xs font-black ${queueStats.stats.failed > 0 ? 'text-red-500' : 'text-white'}`}
-                                >
-                                    {queueStats.stats.failed}
-                                </span>
+                            <div className="flex items-center gap-6 border-l border-white/10 pl-6">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Wait</span>
+                                    <span className={`text-sm font-black ${queueStats.stats.waiting > 0 ? 'text-amber-500' : 'text-slate-300'}`}>{queueStats.stats.waiting}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Active</span>
+                                    <span className={`text-sm font-black ${queueStats.stats.active > 0 ? 'text-[hsl(var(--primary))]' : 'text-slate-300'}`}>{queueStats.stats.active}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Fail</span>
+                                    <span className={`text-sm font-black ${queueStats.stats.failed > 0 ? 'text-red-400' : 'text-slate-300'}`}>{queueStats.stats.failed}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,45 +87,42 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
-                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
+                <div className="glass rounded-[32px] p-8">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 px-2">
                         Tasks Distribution
                     </h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={statusData}>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke="hsl(var(--primary))/0.1"
-                                    vertical={false}
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                    dy={10}
                                 />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="hsl(var(--foreground))/0.5"
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
                                 />
-                                <YAxis
-                                    stroke="hsl(var(--foreground))/0.5"
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
+                                <Tooltip 
+                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                    contentStyle={{ 
+                                        borderRadius: '16px', 
+                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                                        background: 'rgba(11, 11, 30, 0.9)',
+                                        backdropFilter: 'blur(10px)',
+                                        color: '#fff',
+                                        fontWeight: 800
+                                    }} 
+                                    itemStyle={{ color: '#fff' }}
                                 />
-                                <Tooltip
-                                    contentStyle={{
-                                        background: 'hsl(var(--secondary))',
-                                        border: '1px solid hsl(var(--primary))/0.2',
-                                        borderRadius: '12px',
-                                    }}
-                                    cursor={{ fill: 'hsl(var(--primary))/0.05' }}
-                                />
-                                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                <Bar dataKey="value" radius={[4, 4, 4, 4]} barSize={32}>
                                     {statusData.map((_entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={COLORS[index % COLORS.length]}
-                                        />
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -154,44 +130,40 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
-                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
+                <div className="glass rounded-[32px] p-8">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 px-2">
                         Avg Bid Hours vs Complexity
                     </h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={complexityData}>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke="hsl(var(--primary))/0.1"
-                                    vertical={false}
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                    dy={10}
                                 />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="hsl(var(--foreground))/0.5"
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
                                 />
-                                <YAxis
-                                    stroke="hsl(var(--foreground))/0.5"
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        background: 'hsl(var(--secondary))',
-                                        border: '1px solid hsl(var(--primary))/0.2',
-                                        borderRadius: '12px',
+                                <Tooltip 
+                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                    contentStyle={{ 
+                                        borderRadius: '16px', 
+                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                                        background: 'rgba(11, 11, 30, 0.9)',
+                                        backdropFilter: 'blur(10px)',
+                                        color: '#fff',
+                                        fontWeight: 800
                                     }}
-                                    cursor={{ fill: 'hsl(var(--primary))/0.05' }}
+                                    itemStyle={{ color: '#fff' }}
                                 />
-                                <Bar
-                                    dataKey="hours"
-                                    fill="hsl(var(--accent))"
-                                    radius={[4, 4, 0, 0]}
-                                />
+                                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]} barSize={32} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -199,58 +171,50 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
-                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
-                        Top 3 Contributors
+                <div className="lg:col-span-2 glass rounded-[32px] p-8">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 px-2">
+                        Top Contributors
                     </h3>
                     <div className="space-y-6">
                         {data.topUsers.map((user, idx) => (
                             <div key={user.userId} className="flex items-center gap-6">
-                                <span className="text-3xl font-black opacity-10">{idx + 1}</span>
+                                <span className="text-xl font-black text-white/10 w-6">{idx + 1}</span>
                                 <div className="flex-1">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <p className="font-bold text-white">{user.userName}</p>
-                                        <p className="text-sm font-black text-[hsl(var(--primary))]">
-                                            {user.tasksCompleted} Tasks
-                                        </p>
+                                    <div className="flex justify-between items-end mb-2">
+                                        <span className="font-black text-white">{user.userName}</span>
+                                        <span className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-widest">{user.tasksCompleted} Tasks</span>
                                     </div>
-                                    <div className="w-full bg-[hsl(var(--background))] h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-[hsl(var(--primary))] h-full rounded-full transition-all duration-1000"
-                                            style={{
-                                                width: `${(user.tasksCompleted / Math.max(...data.topUsers.map((u) => u.tasksCompleted))) * 100}%`,
-                                            }}
-                                        ></div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-[hsl(var(--primary))] rounded-full shadow-[0_0_10px_rgba(62,62,244,0.5)]" 
+                                            style={{ width: `${Math.max(10, (user.tasksCompleted / Math.max(...data.topUsers.map((u) => u.tasksCompleted))) * 100)}%` }}
+                                        />
                                     </div>
                                 </div>
                             </div>
                         ))}
-                        {data.topUsers.length === 0 && (
-                            <p className="text-center opacity-30 italic">No tasks completed yet.</p>
-                        )}
                     </div>
                 </div>
 
-                <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
-                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8 text-red-500">
-                        Critical: Past Deadline (No Bids)
+                <div className="glass rounded-[32px] p-8">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-red-400 mb-8 px-2 flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></span>
+                        Critical
                     </h3>
                     <div className="space-y-4">
-                        {data.expiredTasksNoBids.map((task) => (
-                            <div
-                                key={task.id}
-                                className="p-4 bg-red-500/5 border border-red-500/10 rounded-2xl"
-                            >
-                                <p className="font-bold text-sm text-white mb-1">{task.title}</p>
-                                <p className="text-[10px] font-black text-red-500 uppercase tracking-tighter">
-                                    Expired: {new Date(task.deadline).toLocaleDateString()}
-                                </p>
+                        {data.expiredTasksNoBids.length === 0 ? (
+                            <div className="text-center py-12 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                No Critical Tasks
                             </div>
-                        ))}
-                        {data.expiredTasksNoBids.length === 0 && (
-                            <p className="text-center opacity-30 italic text-sm">
-                                No critical expired tasks.
-                            </p>
+                        ) : (
+                            data.expiredTasksNoBids.map(task => (
+                                <div key={task.id} className="bg-red-500/10 border border-red-500/20 p-5 rounded-2xl flex flex-col gap-2">
+                                    <span className="font-black text-white line-clamp-1">{task.title}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-red-400">
+                                        Expired {new Date(task.deadline).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            ))
                         )}
                     </div>
                 </div>

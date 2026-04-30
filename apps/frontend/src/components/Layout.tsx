@@ -4,21 +4,21 @@ import { UserSwitcher } from '../modules/users/UserSwitcher';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
-        <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-            <header className="border-b border-white/5 bg-[hsl(var(--secondary))/0.6] backdrop-blur-xl sticky top-0 z-40">
+        <div className="h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] flex flex-col overflow-hidden">
+            <header className="glass shrink-0 z-40 border-b border-white/5 relative">
                 <div className="container mx-auto px-4 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-10">
                         <Link
                             to="/"
-                            className="text-2xl font-black tracking-tighter text-[hsl(var(--primary))] hover:scale-105 transition-all"
+                            className="text-2xl font-black tracking-tighter text-white transition-all hover:scale-105 active:scale-95"
                         >
-                            TASKBID
+                            Task<span className="text-[hsl(var(--primary))]">Bid</span>
                         </Link>
                         <nav className="hidden md:flex items-center gap-2">
                             <NavLink
                                 to="/"
                                 className={({ isActive }) =>
-                                    `px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isActive ? 'bg-[hsl(var(--primary))] text-white shadow-lg shadow-[hsl(var(--primary))/0.2]' : 'hover:bg-white/5 text-slate-400'}`
+                                    `px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all ${isActive ? 'bg-[hsl(var(--primary))] text-white shadow-[0_0_20px_rgba(47,47,228,0.3)]' : 'hover:bg-white/5 text-slate-500'}`
                                 }
                             >
                                 Board
@@ -26,7 +26,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             <NavLink
                                 to="/dashboard"
                                 className={({ isActive }) =>
-                                    `px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isActive ? 'bg-[hsl(var(--primary))] text-white shadow-lg shadow-[hsl(var(--primary))/0.2]' : 'hover:bg-white/5 text-slate-400'}`
+                                    `px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all ${isActive ? 'bg-[hsl(var(--primary))] text-white shadow-[0_0_20px_rgba(47,47,228,0.3)]' : 'hover:bg-white/5 text-slate-500'}`
                                 }
                             >
                                 Dashboard
@@ -36,7 +36,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <UserSwitcher />
                 </div>
             </header>
-            <main className="container mx-auto px-4 py-8">{children}</main>
+            <main className="container mx-auto px-4 py-8 max-w-7xl flex-1 overflow-y-auto no-scrollbar">{children}</main>
         </div>
     );
 };
