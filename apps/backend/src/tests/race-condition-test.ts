@@ -1,87 +1,118 @@
 import axios from 'axios';
 import pino from 'pino';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../core/db/knex';
 
-const logger = pino({ name: 'race-condition-test' });
+const logger = pino({ 
+    name: 'race-condition-test',
+    transport: {
+        target: 'pino-pretty',
+        options: { colorize: true }
+    }
+});
+
 const API_BASE = 'http://localhost:3001/api';
 
 async function runTest() {
     logger.info('Starting race condition test...');
 
-    // 1. Create a user with small capacity
-    const userEmail = `race-user-${Date.now()}@test.com`;
-    await axios.post(`${API_BASE}/users`, {
-        name: 'Race User',
-        email: userEmail,
-        hourly_rate: 100,
-        max_capacity_hours: 10,
-    });
-
-    const users = await axios.get(`${API_BASE}/users`);
-    const user = users.data.data.find((u: any) => u.email === userEmail);
-    logger.info({ userId: user.id }, 'Created user with 10h capacity');
-
-    // 2. Create two tasks and close bidding
-    const taskTitles = ['Task A (8h)', 'Task B (8h)'];
+    const creatorId = uuidv4();
+    const bidderId = uuidv4();
     const taskIds: string[] = [];
 
-    for (const title of taskTitles) {
-        const res = await axios.post(`${API_BASE}/tasks`, {
-            title,
-            complexity: 1,
-            created_by: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Alice
-        });
-        const taskId = res.data.data.id;
-        taskIds.push(taskId);
-
-        // Place bid of 8h for our user
-        await axios.post(
-            `${API_BASE}/tasks/${taskId}/bids`,
+    try {
+        // 1. Setup: Create temporary users directly in DB
+        await db('users').insert([
             {
-                hours_offered: 8,
+                id: creatorId,
+                name: 'Test Creator',
+                email: `creator-${Date.now()}@test.com`,
+                hourly_rate: 100,
+                max_capacity_hours: 100,
             },
             {
-                headers: { 'X-User-Id': user.id },
+                id: bidderId,
+                name: 'Test Bidder',
+                email: `bidder-${Date.now()}@test.com`,
+                hourly_rate: 50,
+                max_capacity_hours: 10,
             }
-        );
+        ]);
+        logger.info('Created temporary test users');
 
-        // Close bidding
-        await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
-            status: 'bidding_closed',
-        });
+        // 2. Setup: Create tasks and bids
+        for (const title of ['Race Task 1 (8h)', 'Race Task 2 (8h)']) {
+            const taskRes = await axios.post(`${API_BASE}/tasks`, {
+                title,
+                complexity: 1,
+                created_by: creatorId,
+            });
+            const taskId = taskRes.data.data.id;
+            taskIds.push(taskId);
 
-        logger.info({ taskId }, `Setup ${title}`);
-    }
+            // Open task
+            await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
+                status: 'open',
+                updated_by: creatorId
+            });
 
-    // 3. Fire simultaneous assign calls
-    logger.info('Firing simultaneous assign calls...');
+            // Place bid
+            await axios.post(`${API_BASE}/tasks/${taskId}/bids`, { 
+                user_id: bidderId,
+                hours_offered: 8 
+            });
 
-    const results = await Promise.allSettled([
-        axios.post(`${API_BASE}/tasks/${taskIds[0]}/assign`),
-        axios.post(`${API_BASE}/tasks/${taskIds[1]}/assign`),
-    ]);
+            // Close bidding
+            await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
+                status: 'bidding_closed',
+                updated_by: creatorId
+            });
 
-    const successes = results.filter((r) => r.status === 'fulfilled');
-    const failures = results.filter((r) => r.status === 'rejected');
+            logger.info({ taskId }, `Prepared ${title}`);
+        }
 
-    logger.info(
-        {
+        // 3. Execution: Fire simultaneous assignment calls
+        logger.info('Firing simultaneous assignment calls...');
+        const results = await Promise.allSettled([
+            axios.post(`${API_BASE}/tasks/${taskIds[0]}/assign`, { initiator_id: creatorId }),
+            axios.post(`${API_BASE}/tasks/${taskIds[1]}/assign`, { initiator_id: creatorId }),
+        ]);
+
+        const successes = results.filter((r) => r.status === 'fulfilled');
+        const failures = results.filter((r) => r.status === 'rejected');
+
+        logger.info({
             successCount: successes.length,
             failureCount: failures.length,
-        },
-        'Results received'
-    );
+        }, 'Results received');
 
-    if (successes.length === 1 && failures.length === 1) {
-        logger.info('SUCCESS: Only one task was assigned. Race condition handled correctly.');
-    } else {
-        logger.error(
-            'FAILURE: Race condition handling failed. Both tasks assigned or both failed.'
-        );
-        process.exit(1);
+        // 4. Verification
+        if (successes.length === 1 && failures.length === 1) {
+            logger.info('SUCCESS: Race condition handled correctly. Only one task assigned.');
+        } else if (successes.length === 2) {
+            logger.error('FAILURE: RACE CONDITION DETECTED! Both tasks were assigned.');
+        } else {
+            logger.error('FAILURE: Unexpected result. Check server logs.');
+        }
+
+    } catch (err: any) {
+        logger.error({ 
+            message: err.message, 
+            response: err.response?.data 
+        }, 'Test crashed');
+    } finally {
+        // 5. Cleanup
+        logger.info('Cleaning up test data...');
+        try {
+            await db('bids').whereIn('task_id', taskIds).delete();
+            await db('tasks').whereIn('id', taskIds).delete();
+            await db('users').whereIn('id', [creatorId, bidderId]).delete();
+            logger.info('Cleanup complete.');
+        } catch (cleanupErr) {
+            logger.error('Cleanup failed.');
+        }
+        await db.destroy();
     }
 }
 
-runTest().catch((err) => {
-    logger.error(err);
-    process.exit(1);
-});
+runTest();

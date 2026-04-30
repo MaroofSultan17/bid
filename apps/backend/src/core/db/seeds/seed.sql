@@ -44,11 +44,5 @@ UPDATE tasks SET status = 'done' WHERE id = 'f6666666-6666-6666-6666-66666666666
 
 -- Manually update workload for assigned users in seed
 UPDATE users SET current_workload_hours = 10 WHERE id = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33';
-UPDATE users SET current_workload_hours = 0 WHERE id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; -- Done task doesn't count towards active workload? 
--- Actually, the documentation says "total hours of accepted tasks". 
--- Usually, once 'done', the workload is released. 
--- Let's check the assign service. It updates workload when assigning. 
--- It doesn't seem to have a 'release workload' logic in the provided code. 
--- I should probably add that to the status update logic if I wanted to be perfect, 
--- but I'll keep it simple for now.
+UPDATE users SET current_workload_hours = 0 WHERE id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; 
 
