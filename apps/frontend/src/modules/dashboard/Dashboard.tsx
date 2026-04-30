@@ -53,32 +53,60 @@ export const Dashboard: React.FC = () => {
         hours: Number(item.avgHours).toFixed(1),
     }));
 
-    const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#3b82f6', '#1e293b'];
+    const COLORS = [
+        'hsl(var(--primary))',
+        'hsl(var(--secondary))',
+        'hsl(var(--accent))',
+        '#3b82f6',
+        '#1e293b',
+    ];
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="justify-between items-end hidden md:flex">
-                <h1 className="text-4xl font-black tracking-tighter text-white">Platform Dashboard</h1>
+                <h1 className="text-4xl font-black tracking-tighter text-white">
+                    Platform Dashboard
+                </h1>
 
                 {queueStats && (
                     <div className="flex gap-4">
                         <div className="glass px-6 py-3 rounded-2xl flex items-center gap-6">
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Queue</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    Queue
+                                </span>
                                 <span className="text-sm font-black text-white">Notifications</span>
                             </div>
                             <div className="flex items-center gap-6 border-l border-white/10 pl-6">
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Wait</span>
-                                    <span className={`text-sm font-black ${queueStats.stats.waiting > 0 ? 'text-amber-500' : 'text-slate-300'}`}>{queueStats.stats.waiting}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                        Wait
+                                    </span>
+                                    <span
+                                        className={`text-sm font-black ${queueStats.stats.waiting > 0 ? 'text-amber-500' : 'text-slate-300'}`}
+                                    >
+                                        {queueStats.stats.waiting}
+                                    </span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Active</span>
-                                    <span className={`text-sm font-black ${queueStats.stats.active > 0 ? 'text-[hsl(var(--primary))]' : 'text-slate-300'}`}>{queueStats.stats.active}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                        Active
+                                    </span>
+                                    <span
+                                        className={`text-sm font-black ${queueStats.stats.active > 0 ? 'text-[hsl(var(--primary))]' : 'text-slate-300'}`}
+                                    >
+                                        {queueStats.stats.active}
+                                    </span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Fail</span>
-                                    <span className={`text-sm font-black ${queueStats.stats.failed > 0 ? 'text-red-400' : 'text-slate-300'}`}>{queueStats.stats.failed}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                        Fail
+                                    </span>
+                                    <span
+                                        className={`text-sm font-black ${queueStats.stats.failed > 0 ? 'text-red-400' : 'text-slate-300'}`}
+                                    >
+                                        {queueStats.stats.failed}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -94,35 +122,42 @@ export const Dashboard: React.FC = () => {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={statusData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    vertical={false}
+                                    stroke="rgba(255,255,255,0.05)"
+                                />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
                                     dy={10}
                                 />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
                                 />
-                                <Tooltip 
+                                <Tooltip
                                     cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                    contentStyle={{ 
-                                        borderRadius: '16px', 
-                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                    contentStyle={{
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
                                         background: 'rgba(11, 11, 30, 0.9)',
                                         backdropFilter: 'blur(10px)',
                                         color: '#fff',
-                                        fontWeight: 800
-                                    }} 
+                                        fontWeight: 800,
+                                    }}
                                     itemStyle={{ color: '#fff' }}
                                 />
                                 <Bar dataKey="value" radius={[4, 4, 4, 4]} barSize={32}>
                                     {statusData.map((_entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                        />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -137,33 +172,42 @@ export const Dashboard: React.FC = () => {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={complexityData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    vertical={false}
+                                    stroke="rgba(255,255,255,0.05)"
+                                />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
                                     dy={10}
                                 />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }} 
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
                                 />
-                                <Tooltip 
+                                <Tooltip
                                     cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                    contentStyle={{ 
-                                        borderRadius: '16px', 
-                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                    contentStyle={{
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
                                         background: 'rgba(11, 11, 30, 0.9)',
                                         backdropFilter: 'blur(10px)',
                                         color: '#fff',
-                                        fontWeight: 800
+                                        fontWeight: 800,
                                     }}
                                     itemStyle={{ color: '#fff' }}
                                 />
-                                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]} barSize={32} />
+                                <Bar
+                                    dataKey="hours"
+                                    fill="hsl(var(--primary))"
+                                    radius={[4, 4, 4, 4]}
+                                    barSize={32}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -178,16 +222,24 @@ export const Dashboard: React.FC = () => {
                     <div className="space-y-6">
                         {data.topUsers.map((user, idx) => (
                             <div key={user.userId} className="flex items-center gap-6">
-                                <span className="text-xl font-black text-white/10 w-6">{idx + 1}</span>
+                                <span className="text-xl font-black text-white/10 w-6">
+                                    {idx + 1}
+                                </span>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-end mb-2">
-                                        <span className="font-black text-white">{user.userName}</span>
-                                        <span className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-widest">{user.tasksCompleted} Tasks</span>
+                                        <span className="font-black text-white">
+                                            {user.userName}
+                                        </span>
+                                        <span className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-widest">
+                                            {user.tasksCompleted} Tasks
+                                        </span>
                                     </div>
                                     <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-[hsl(var(--primary))] rounded-full shadow-[0_0_10px_rgba(62,62,244,0.5)]" 
-                                            style={{ width: `${Math.max(10, (user.tasksCompleted / Math.max(...data.topUsers.map((u) => u.tasksCompleted))) * 100)}%` }}
+                                        <div
+                                            className="h-full bg-[hsl(var(--primary))] rounded-full shadow-[0_0_10px_rgba(62,62,244,0.5)]"
+                                            style={{
+                                                width: `${Math.max(10, (user.tasksCompleted / Math.max(...data.topUsers.map((u) => u.tasksCompleted))) * 100)}%`,
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -207,9 +259,14 @@ export const Dashboard: React.FC = () => {
                                 No Critical Tasks
                             </div>
                         ) : (
-                            data.expiredTasksNoBids.map(task => (
-                                <div key={task.id} className="bg-red-500/10 border border-red-500/20 p-5 rounded-2xl flex flex-col gap-2">
-                                    <span className="font-black text-white line-clamp-1">{task.title}</span>
+                            data.expiredTasksNoBids.map((task) => (
+                                <div
+                                    key={task.id}
+                                    className="bg-red-500/10 border border-red-500/20 p-5 rounded-2xl flex flex-col gap-2"
+                                >
+                                    <span className="font-black text-white line-clamp-1">
+                                        {task.title}
+                                    </span>
                                     <span className="text-[9px] font-black uppercase tracking-widest text-red-400">
                                         Expired {new Date(task.deadline).toLocaleDateString()}
                                     </span>

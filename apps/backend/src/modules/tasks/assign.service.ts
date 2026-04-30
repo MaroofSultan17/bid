@@ -29,6 +29,14 @@ export class AssignService {
                 );
             }
 
+            if (task.deadline && new Date(task.deadline).getTime() < Date.now()) {
+                throw new AppError(
+                    'Cannot assign task. The task deadline has expired.',
+                    409,
+                    'ERR_DEADLINE_PASSED'
+                );
+            }
+
             const bids = await this.bidRepository.findActiveBidsForAssign(taskId, trx);
             if (bids.length === 0) {
                 throw new AppError(

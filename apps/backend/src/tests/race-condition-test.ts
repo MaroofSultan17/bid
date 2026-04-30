@@ -3,12 +3,12 @@ import pino from 'pino';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../core/db/knex';
 
-const logger = pino({ 
+const logger = pino({
     name: 'race-condition-test',
     transport: {
         target: 'pino-pretty',
-        options: { colorize: true }
-    }
+        options: { colorize: true },
+    },
 });
 
 const API_BASE = 'http://localhost:3001/api';
@@ -36,7 +36,7 @@ async function runTest() {
                 email: `bidder-${Date.now()}@test.com`,
                 hourly_rate: 50,
                 max_capacity_hours: 10,
-            }
+            },
         ]);
         logger.info('Created temporary test users');
 
@@ -53,19 +53,19 @@ async function runTest() {
             // Open task
             await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
                 status: 'open',
-                updated_by: creatorId
+                updated_by: creatorId,
             });
 
             // Place bid
-            await axios.post(`${API_BASE}/tasks/${taskId}/bids`, { 
+            await axios.post(`${API_BASE}/tasks/${taskId}/bids`, {
                 user_id: bidderId,
-                hours_offered: 8 
+                hours_offered: 8,
             });
 
             // Close bidding
             await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
                 status: 'bidding_closed',
-                updated_by: creatorId
+                updated_by: creatorId,
             });
 
             logger.info({ taskId }, `Prepared ${title}`);
@@ -81,10 +81,13 @@ async function runTest() {
         const successes = results.filter((r) => r.status === 'fulfilled');
         const failures = results.filter((r) => r.status === 'rejected');
 
-        logger.info({
-            successCount: successes.length,
-            failureCount: failures.length,
-        }, 'Results received');
+        logger.info(
+            {
+                successCount: successes.length,
+                failureCount: failures.length,
+            },
+            'Results received'
+        );
 
         // 4. Verification
         if (successes.length === 1 && failures.length === 1) {
@@ -94,12 +97,14 @@ async function runTest() {
         } else {
             logger.error('FAILURE: Unexpected result. Check server logs.');
         }
-
     } catch (err: any) {
-        logger.error({ 
-            message: err.message, 
-            response: err.response?.data 
-        }, 'Test crashed');
+        logger.error(
+            {
+                message: err.message,
+                response: err.response?.data,
+            },
+            'Test crashed'
+        );
     } finally {
         // 5. Cleanup
         logger.info('Cleaning up test data...');

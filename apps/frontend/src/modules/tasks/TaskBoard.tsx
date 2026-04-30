@@ -35,16 +35,16 @@ export const TaskBoard: React.FC = () => {
                     onClick={() => setIsCreateModalOpen(true)}
                     className="bg-[hsl(var(--primary))] hover:bg-white hover:text-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-blue-500/20 flex items-center gap-3 group active:scale-95"
                 >
-                    <span className="text-xl group-hover:rotate-90 transition-transform duration-300">+</span> New Task
+                    <span className="text-xl group-hover:rotate-90 transition-transform duration-300">
+                        +
+                    </span>{' '}
+                    New Task
                 </button>
             </div>
 
             <div className="grid grid-flow-col auto-cols-[calc((100%-4rem)/3)] gap-8 overflow-x-auto pb-10 items-start snap-x snap-mandatory">
                 {TASK_STATUS_ORDER.map((status) => (
-                    <div
-                        key={status}
-                        className="flex flex-col gap-6 w-full snap-start"
-                    >
+                    <div key={status} className="flex flex-col gap-6 w-full snap-start">
                         <div className="flex items-center justify-between px-5">
                             <div className="flex items-center gap-3">
                                 <div className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_15px_rgba(62,62,244,0.8)]"></div>

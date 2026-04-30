@@ -36,7 +36,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <UserSwitcher />
                 </div>
             </header>
-            <main className="container mx-auto px-4 py-8 max-w-7xl flex-1 overflow-y-auto no-scrollbar">{children}</main>
+            <main className="container mx-auto px-4 py-8 max-w-7xl flex-1 overflow-y-auto no-scrollbar">
+                {children}
+            </main>
         </div>
     );
 };

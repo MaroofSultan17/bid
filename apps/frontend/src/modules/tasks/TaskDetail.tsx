@@ -15,6 +15,11 @@ export const TaskDetail: React.FC = () => {
     const { activeUser } = useUserStore();
     const qc = useQueryClient();
 
+    const isDeadlinePassed = (deadline: string | null) => {
+        // eslint-disable-next-line react-hooks/purity
+        return deadline ? new Date(deadline).getTime() < Date.now() : false;
+    };
+
     const { data: task, isLoading } = useQuery({
         queryKey: ['tasks', id],
         queryFn: () => TaskService.getTask(id!),
@@ -77,7 +82,8 @@ export const TaskDetail: React.FC = () => {
                 onClick={() => navigate('/')}
                 className="text-[11px] font-black text-slate-400 hover:text-[hsl(var(--primary))] transition-all flex items-center gap-3 uppercase tracking-[0.2em] group"
             >
-                <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Board
+                <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to
+                Board
             </button>
 
             <div className="glass rounded-[40px] p-10 shadow-2xl overflow-hidden relative border border-white/60">
@@ -100,7 +106,7 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Complexity
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--accent))]">
+                            <span className="text-xl font-black text-[hsl(var(--primary))]">
                                 {task.complexity}/5
                             </span>
                         </div>
@@ -108,7 +114,7 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Deadline
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--accent))]">
+                            <span className="text-xl font-black text-[hsl(var(--primary))]">
                                 {task.deadline
                                     ? new Date(task.deadline).toLocaleDateString()
                                     : 'N/A'}
@@ -118,7 +124,9 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Bids
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--accent))]">{task.bidCount}</span>
+                            <span className="text-xl font-black text-[hsl(var(--primary))]">
+                                {task.bidCount}
+                            </span>
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
@@ -152,10 +160,16 @@ export const TaskDetail: React.FC = () => {
                         <div className="flex gap-4">
                             <button
                                 onClick={() => assignTask.mutate()}
-                                className="bg-[hsl(var(--accent))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-blue-900/20"
+                                disabled={isDeadlinePassed(task.deadline)}
+                                className="bg-[hsl(var(--accent))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Assign Best Bidder
                             </button>
+                            {isDeadlinePassed(task.deadline) && (
+                                <span className="text-red-400 text-xs font-bold self-center uppercase tracking-widest">
+                                    Deadline Passed
+                                </span>
+                            )}
                         </div>
                     )}
                     {task.status === 'assigned' && activeUser?.id === task.assignedTo && (
@@ -198,11 +212,11 @@ export const TaskDetail: React.FC = () => {
                         <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse"></span>
                         Place Your Bid
                     </h3>
-                    {task.status === 'open' ? (
+                    {task.status === 'open' && !isDeadlinePassed(task.deadline) ? (
                         <BidForm taskId={task.id} taskCreatorId={task.createdBy} />
                     ) : (
                         <div className="p-12 glass rounded-[32px] text-center text-slate-300 italic text-xs uppercase tracking-[0.2em] border-2 border-dashed border-white/40">
-                            Bidding Closed
+                            {task.status !== 'open' ? 'Bidding Closed' : 'Deadline Passed'}
                         </div>
                     )}
                 </div>

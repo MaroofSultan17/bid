@@ -11,6 +11,10 @@ export class TaskService {
     constructor(private taskRepository: TaskRepository) {}
 
     async createTask(dto: TaskCreateRequest): Promise<TaskRow> {
+        if (dto.deadline && new Date(dto.deadline).getTime() < Date.now()) {
+            throw new AppError('Task deadline cannot be in the past.', 400, 'ERR_INVALID_DEADLINE');
+        }
+
         return this.taskRepository.db.transaction(async (trx) => {
             await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.created_by]);
             return this.taskRepository.create(dto, trx);
