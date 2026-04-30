@@ -42,7 +42,7 @@ export const TaskDetail: React.FC = () => {
                 throw new Error('Please select a user profile to perform this action.');
             return TaskService.advanceStatus(id!, { status, updated_by: activeUser.id });
         },
-        onSuccess: (res, status) => {
+        onSuccess: (_res, status) => {
             const label = status.replace('_', ' ');
             notifySuccess(`Task status successfully updated to ${label}.`);
             qc.invalidateQueries({ queryKey: ['tasks', id] });
