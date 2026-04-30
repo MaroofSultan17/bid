@@ -21,8 +21,10 @@ export const TaskDetail: React.FC = () => {
         enabled: !!id,
     });
 
-    useSSE(`/api/tasks/${id}/events`, {
-        'bid:new': (_data) => {
+    const sseUrl = id ? `/api/tasks/${id}/events` : null;
+
+    useSSE(sseUrl, {
+        'bid:new': () => {
             qc.invalidateQueries({ queryKey: ['bids', id] });
             qc.invalidateQueries({ queryKey: ['tasks', id] });
             notifySuccess('New bid placed!');
@@ -42,7 +44,7 @@ export const TaskDetail: React.FC = () => {
         onSuccess: () => {
             notifySuccess('Status advanced');
             qc.invalidateQueries({ queryKey: ['tasks', id] });
-            qc.invalidateQueries({ queryKey: ['tasks'] }); // Also refresh the board
+            qc.invalidateQueries({ queryKey: ['tasks'] });
         },
         onError: (e: any) => notifyError(e.message),
     });

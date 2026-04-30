@@ -39,13 +39,13 @@ export const TaskBoard: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex gap-6 overflow-x-auto pb-8 items-start snap-x scroll-smooth">
+            <div className="flex gap-6 overflow-x-auto pb-8 items-start snap-x scroll-smooth scrollbar-hide">
                 {TASK_STATUS_ORDER.map((status) => (
-                    <div key={status} className="flex flex-col gap-5 min-w-[280px] snap-start">
-                        <div className="flex items-center justify-between px-3">
+                    <div key={status} className="flex flex-col gap-4 w-[350px] flex-shrink-0 snap-start">
+                        <div className="flex items-center justify-between px-4">
                             <div className="flex items-center gap-2">
-                                <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_8px] shadow-[hsl(var(--primary))]"></div>
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
+                                <div className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_10px] shadow-[hsl(var(--primary))]"></div>
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">
                                     {status.replace('_', ' ')}
                                 </h3>
                             </div>

@@ -31,6 +31,8 @@ export class BidService {
                 .catch(() => {});
         }
 
+        sseManager.publishGlobal('queue:update', { taskId });
+
         return bid;
     }
 

@@ -25,6 +25,17 @@ export const Dashboard: React.FC = () => {
         'dashboard:update': () => {
             qc.invalidateQueries({ queryKey: ['dashboard'] });
         },
+        'queue:update': () => {
+            qc.invalidateQueries({ queryKey: ['admin', 'queues'] });
+        },
+    });
+
+    const { data: queueStats } = useQuery({
+        queryKey: ['admin', 'queues'],
+        queryFn: async () => {
+            const res = await fetch('/api/admin/queues');
+            return res.json();
+        },
     });
 
     if (isLoading)
@@ -46,10 +57,41 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h1 className="text-4xl font-black tracking-tight">PLATFORM DASHBOARD</h1>
+            <div className="flex justify-between items-end">
+                <h1 className="text-4xl font-black tracking-tight">PLATFORM DASHBOARD</h1>
+                
+                {queueStats && (
+                    <div className="flex gap-4 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] px-4 py-2 rounded-2xl shadow-sm">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black uppercase opacity-40">Queue</span>
+                            <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Notifications</span>
+                        </div>
+                        <div className="w-px h-6 bg-white/5 self-center"></div>
+                        <div className="flex gap-3">
+                            <div className="flex flex-col items-center">
+                                <span className="text-[8px] font-black uppercase opacity-40">Wait</span>
+                                <span className={`text-xs font-black ${queueStats.stats.waiting > 0 ? 'text-amber-500' : 'text-white'}`}>
+                                    {queueStats.stats.waiting}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[8px] font-black uppercase opacity-40">Active</span>
+                                <span className={`text-xs font-black ${queueStats.stats.active > 0 ? 'text-[hsl(var(--primary))]' : 'text-white'}`}>
+                                    {queueStats.stats.active}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[8px] font-black uppercase opacity-40">Fail</span>
+                                <span className={`text-xs font-black ${queueStats.stats.failed > 0 ? 'text-red-500' : 'text-white'}`}>
+                                    {queueStats.stats.failed}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Tasks by Status Chart */}
                 <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
                     <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
                         Tasks Distribution
@@ -96,7 +138,6 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Avg Bid by Complexity Chart */}
                 <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
                     <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
                         Avg Bid Hours vs Complexity
@@ -142,7 +183,6 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Top Users */}
                 <div className="lg:col-span-2 bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
                     <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8">
                         Top 3 Contributors
@@ -175,7 +215,6 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Expired Tasks */}
                 <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl">
                     <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-8 text-red-500">
                         Critical: Past Deadline (No Bids)
