@@ -2,50 +2,111 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BidService } from '../../services/BidService';
 import { useUserStore } from '../../core/store/userStore';
-import { useJwt } from '../../contexts/JwtContext';
-import { useEnv } from '../../contexts/EnvContext';
 import { notifySuccess, notifyError } from '../../components/Toast';
+import { UserService } from '../../services/UserService';
 
-export const BidForm: React.FC<{ taskId: string }> = ({ taskId }) => {
+export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
+    taskId,
+    taskCreatorId,
+}) => {
     const [hours, setHours] = useState('');
-    const { currentUserId } = useUserStore();
-    const { token } = useJwt();
-    const env = useEnv();
-    const baseUrl = env.VITE_API_BASE_URL || '/api';
+    const { activeUser, setActiveUser } = useUserStore();
     const qc = useQueryClient();
 
-    const mut = useMutation({
-        mutationFn: () =>
-            new BidService(baseUrl, token!).createBid(taskId, {
-                user_id: currentUserId!,
+    const mutation = useMutation({
+        mutationFn: () => {
+            if (!activeUser) throw new Error('Please select a user first');
+            if (activeUser.id === taskCreatorId) throw new Error('You cannot bid on your own task');
+            return BidService.placeBid(taskId, {
                 hours_offered: Number(hours),
-            }),
-        onSuccess: () => {
-            notifySuccess('Participation recorded');
+                user_id: activeUser.id,
+            });
+        },
+        onSuccess: async () => {
+            notifySuccess('Bid placed successfully');
             setHours('');
             qc.invalidateQueries({ queryKey: ['bids', taskId] });
+            // Refresh user workload
+            if (activeUser) {
+                const updatedUser = await UserService.getWorkload(activeUser.id);
+                setActiveUser(updatedUser);
+            }
         },
-        onError: (e: any) => notifyError(e.message),
+        onError: async (e: any) => {
+            const message = e.message.includes('ERR_SELF_BID')
+                ? 'You cannot bid on your own task'
+                : e.message;
+            notifyError(message);
+            // If capacity error, refresh user info
+            if (activeUser) {
+                const updatedUser = await UserService.getWorkload(activeUser.id);
+                setActiveUser(updatedUser);
+            }
+        },
     });
 
-    if (!currentUserId || !token)
-        return <p className="text-red-400 text-xs italic">Authentication required to bid.</p>;
+    if (!activeUser || activeUser.id === taskCreatorId) {
+        if (activeUser?.id === taskCreatorId) {
+            return (
+                <div className="p-8 bg-[hsl(var(--secondary))/0.5] border border-[hsl(var(--primary))/0.1] rounded-3xl text-center opacity-70 italic text-sm">
+                    You are the creator of this task.
+                </div>
+            );
+        }
+        return null;
+    }
+
+    const isOverCapacity = Number(hours) > activeUser.remainingCapacityHours;
 
     return (
-        <div className="flex gap-3 mt-6 bg-[hsl(var(--background))] p-4 rounded-xl border border-[hsl(var(--primary))]">
-            <input
-                type="number"
-                placeholder="Hours"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                className="bg-[hsl(var(--background))] border border-[hsl(var(--primary))] p-2 rounded-lg text-white w-24 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent))]"
-            />
+        <div className="bg-[hsl(var(--secondary))] border border-[hsl(var(--primary))/0.1] rounded-3xl p-8 shadow-xl space-y-6">
+            <div className="flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                    Your Capacity
+                </span>
+                <span className="text-sm font-black text-[hsl(var(--accent))]">
+                    {activeUser.remainingCapacityHours}h available
+                </span>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest opacity-50">
+                    Hours Required
+                </label>
+                <div className="relative">
+                    <input
+                        type="number"
+                        min={1}
+                        className={`w-full bg-[hsl(var(--background))] border p-4 rounded-2xl focus:outline-none focus:ring-2 transition-all font-black text-2xl text-white ${
+                            isOverCapacity || Number(hours) < 0
+                                ? 'border-red-500/50 focus:ring-red-500'
+                                : 'border-[hsl(var(--primary))/0.2] focus:ring-[hsl(var(--primary))]'
+                        }`}
+                        placeholder="0"
+                        value={hours}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (Number(val) < 0) return;
+                            setHours(val);
+                        }}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black opacity-20 text-xl">
+                        HOURS
+                    </span>
+                </div>
+                {isOverCapacity && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-tight">
+                        Exceeds your remaining capacity!
+                    </p>
+                )}
+            </div>
+
             <button
-                onClick={() => mut.mutate()}
-                disabled={mut.isPending || !hours}
-                className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))] hover:text-black transition-all px-4 py-2 rounded-lg font-bold text-sm flex-1 disabled:opacity-50"
+                onClick={() => mutation.mutate()}
+                disabled={mutation.isPending || !hours || isOverCapacity}
+                className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))] hover:text-black text-white p-4 rounded-2xl font-black transition-all shadow-xl shadow-[hsl(var(--primary))/0.2] disabled:opacity-50 uppercase tracking-widest"
             >
-                Submit Bid
+                {mutation.isPending ? 'Placing Bid...' : 'Submit Bid'}
             </button>
         </div>
     );

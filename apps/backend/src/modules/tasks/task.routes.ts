@@ -7,6 +7,8 @@ import { UserRepository } from '../users/user.repository';
 import { BidRepository } from '../bids/bid.repository';
 import { validate } from '../../core/middleware/validate';
 import { TaskCreateRequestSchema, TaskStatusUpdateRequestSchema } from './task.types';
+import { sseManager } from '../../core/sse/sse.manager';
+import bidRoutes from '../bids/bid.routes';
 import db from '../../core/db/knex';
 
 const router = Router();
@@ -23,5 +25,11 @@ router.get('/', controller.getTasks);
 router.get('/:id', controller.getTask);
 router.patch('/:id/status', validate(TaskStatusUpdateRequestSchema), controller.advanceStatus);
 router.post('/:id/assign', controller.assignTask);
+
+router.get('/:id/events', (req, res) => {
+    sseManager.subscribe(req.params.id, res);
+});
+
+router.use('/:id/bids', bidRoutes);
 
 export default router;

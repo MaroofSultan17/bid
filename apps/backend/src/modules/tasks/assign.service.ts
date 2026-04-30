@@ -5,6 +5,7 @@ import { UserRepository } from '../users/user.repository';
 import { AssignmentResult } from './task.types';
 import { AppError } from '../../core/types';
 import { sseManager } from '../../core/sse/sse.manager';
+import { notificationQueue, JOB } from '../../core/queue/queue';
 
 export class AssignService {
     constructor(
@@ -15,7 +16,7 @@ export class AssignService {
     ) {}
 
     async assign(taskId: string): Promise<AssignmentResult> {
-        return await this.db.transaction(async (trx) => {
+        const result = await this.db.transaction(async (trx) => {
             const task = await this.taskRepository.lockForAssign(taskId, trx);
             if (!task) {
                 throw new AppError(
@@ -47,15 +48,12 @@ export class AssignService {
                 await this.bidRepository.updateStatus(bid.id, 'won', trx);
                 await this.bidRepository.updateAllExcept(taskId, bid.id, 'outbid', trx);
 
-                const result: AssignmentResult = {
+                return {
                     taskId,
                     assignedTo: user.id,
-                    assignedUserName: user.userName,
+                    assignedUserName: user.name,
                     hoursCommitted: offered,
                 };
-
-                sseManager.broadcast('TASK_ASSIGNED', result);
-                return result;
             }
 
             throw new AppError(
@@ -64,5 +62,47 @@ export class AssignService {
                 'ERR_NO_VALID_BIDDER'
             );
         });
+
+        sseManager.publish(taskId, 'task:assigned', {
+            assignedTo: result.assignedTo,
+            assignedUserName: result.assignedUserName,
+            hoursCommitted: result.hoursCommitted,
+        });
+        sseManager.publishGlobal('dashboard:update', { taskId });
+
+        const allBids = await this.bidRepository.findByTask(taskId);
+        const loserBids = allBids.filter((b) => b.userId !== result.assignedTo);
+        for (const loser of loserBids) {
+            notificationQueue
+                .add(
+                    JOB.ASSIGNMENT_EMAIL,
+                    {
+                        email: loser.userEmail,
+                        taskTitle: taskId,
+                        hoursCommitted: result.hoursCommitted,
+                        won: false,
+                    },
+                    { attempts: 3, backoff: { type: 'exponential', delay: 2000 } }
+                )
+                .catch(() => {});
+        }
+
+        const winnerBid = allBids.find((b) => b.userId === result.assignedTo);
+        if (winnerBid) {
+            notificationQueue
+                .add(
+                    JOB.ASSIGNMENT_EMAIL,
+                    {
+                        email: winnerBid.userEmail,
+                        taskTitle: taskId,
+                        hoursCommitted: result.hoursCommitted,
+                        won: true,
+                    },
+                    { attempts: 3, backoff: { type: 'exponential', delay: 2000 } }
+                )
+                .catch(() => {});
+        }
+
+        return result;
     }
 }

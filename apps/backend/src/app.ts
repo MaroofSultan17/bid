@@ -1,15 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 import { requestLogger } from './core/middleware/requestLogger';
 import { errorHandler } from './core/middleware/errorHandler';
-import { requireAuth } from './core/middleware/auth.middleware';
+import { sseManager } from './core/sse/sse.manager';
 
-import { authRouter } from './modules/auth/auth.routes';
 import userRoutes from './modules/users/user.routes';
 import taskRoutes from './modules/tasks/task.routes';
-import bidRoutes from './modules/bids/bid.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 const app = express();
@@ -17,20 +14,20 @@ const app = express();
 app.use(helmet());
 app.use(
     cors({
-        origin: process.env.DEFAULT_HOST || 'http://localhost:3000',
+        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
         credentials: true,
     })
 );
 app.use(express.json());
-app.use(cookieParser());
 app.use(requestLogger);
 
-app.use('/api/auth', authRouter);
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-app.use('/api/users', requireAuth, userRoutes);
-app.use('/api/tasks', requireAuth, taskRoutes);
-app.use('/api/bids', requireAuth, bidRoutes);
-app.use('/api/dashboard', requireAuth, dashboardRoutes);
+app.get('/api/events', (req, res) => {
+    sseManager.subscribeGlobal(res);
+});
 
 app.use(errorHandler);
 

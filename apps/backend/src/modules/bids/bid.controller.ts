@@ -7,7 +7,7 @@ export class BidController {
 
     createBid = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const bid = await this.bidService.createBid(req.params.taskId, req.body);
+            const bid = await this.bidService.createBid(req.params.id, req.body);
             const response: ApiResponse<typeof bid> = {
                 status: 'success',
                 data: bid,
@@ -21,7 +21,7 @@ export class BidController {
 
     getBidsForTask = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const bids = await this.bidService.getBidsForTask(req.params.taskId);
+            const bids = await this.bidService.getBidsForTask(req.params.id);
             const response: ApiResponse<typeof bids> = {
                 status: 'success',
                 data: bids,

@@ -3,25 +3,57 @@ import pino from 'pino';
 
 const logger = pino({ name: 'mailer' });
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const smtpHost = process.env.SMTP_HOST;
 
-export const sendMail = async (to: string, subject: string, text: string) => {
+const transporter = smtpHost
+    ? nodemailer.createTransport({
+          host: smtpHost,
+          port: parseInt(process.env.SMTP_PORT || '587', 10),
+          auth: {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS,
+          },
+      })
+    : null;
+
+const from = process.env.SMTP_FROM || '"TaskBid" <noreply@taskbid.internal>';
+
+export async function sendOutbidEmail(
+    to: string,
+    taskTitle: string,
+    newLowestBid: number
+): Promise<void> {
+    if (!transporter) return;
     try {
-        const info = await transporter.sendMail({
-            from: '"TaskBid" <noreply@taskbid.internal>',
+        await transporter.sendMail({
+            from,
             to,
-            subject,
-            text,
+            subject: `You have been outbid on "${taskTitle}"`,
+            text: `A new bid of ${newLowestBid} hours has been placed on "${taskTitle}", which is lower than your bid. You may want to place a new bid.`,
         });
-        logger.info(`Message sent: ${info.messageId}`);
-    } catch (error) {
-        logger.error(error, 'Failed to send email');
+        logger.info({ to, taskTitle }, 'Outbid email sent');
+    } catch (err) {
+        logger.error({ err, to }, 'Failed to send outbid email');
     }
-};
+}
+
+export async function sendAssignmentEmail(
+    to: string,
+    taskTitle: string,
+    hoursCommitted: number,
+    won: boolean
+): Promise<void> {
+    if (!transporter) return;
+    try {
+        const subject = won
+            ? `You won the bid for "${taskTitle}"`
+            : `Task "${taskTitle}" has been assigned to another bidder`;
+        const text = won
+            ? `Congratulations! You have been assigned "${taskTitle}" for ${hoursCommitted} hours.`
+            : `The task "${taskTitle}" has been assigned to another bidder who offered ${hoursCommitted} hours.`;
+        await transporter.sendMail({ from, to, subject, text });
+        logger.info({ to, taskTitle, won }, 'Assignment email sent');
+    } catch (err) {
+        logger.error({ err, to }, 'Failed to send assignment email');
+    }
+}

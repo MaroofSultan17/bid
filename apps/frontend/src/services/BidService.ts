@@ -1,62 +1,12 @@
-import { ApiResponse } from '../core/types';
-import { BidGetResponseDTO, BidCreateRequestDTO } from '../types/dto/bid.dto';
+import { apiClient } from '../core/api/apiClient';
+import { BidResponse, BidCreateRequest } from '../types/dto/bid.dto';
 
-export class BidService {
-    constructor(
-        private publicApiBaseUrl: string,
-        private token: string
-    ) {}
+export const BidService = {
+    async getBids(taskId: string): Promise<BidResponse[]> {
+        return apiClient.get(`/tasks/${taskId}/bids`);
+    },
 
-    async createBid(taskId: string, dto: BidCreateRequestDTO): Promise<BidGetResponseDTO> {
-        const url = new URL(`${this.publicApiBaseUrl}/bids/task/${taskId}`);
-
-        const json = fetch(url.toString(), {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${this.token}`,
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dto),
-        })
-            .then((result) => {
-                if (result.ok) {
-                    return result.json().then((res: ApiResponse<BidGetResponseDTO>) => res.data);
-                }
-                return result.json().then((errorData) => {
-                    throw new Error(errorData.message);
-                });
-            })
-            .catch((error) => {
-                throw new Error(error);
-            });
-
-        return json;
-    }
-
-    async getBidsForTask(taskId: string): Promise<BidGetResponseDTO[]> {
-        const url = new URL(`${this.publicApiBaseUrl}/bids/task/${taskId}`);
-
-        const json = fetch(url.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${this.token}`,
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((result) => {
-                if (result.ok) {
-                    return result.json().then((res: ApiResponse<BidGetResponseDTO[]>) => res.data);
-                }
-                return result.json().then((errorData) => {
-                    throw new Error(errorData.message);
-                });
-            })
-            .catch((error) => {
-                throw new Error(error);
-            });
-
-        return json;
-    }
-}
+    async placeBid(taskId: string, data: BidCreateRequest): Promise<BidResponse> {
+        return apiClient.post(`/tasks/${taskId}/bids`, data);
+    },
+};

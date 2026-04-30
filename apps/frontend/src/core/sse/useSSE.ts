@@ -1,17 +1,49 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-export function useSSE(event: string, callback: (data: any) => void) {
+export function useSSE(url: string, handlers: Record<string, (data: any) => void>) {
+    const handlersRef = useRef(handlers);
+
     useEffect(() => {
-        const eventSource = new EventSource('/api/sse');
+        handlersRef.current = handlers;
+    });
 
-        eventSource.addEventListener(event, (e: any) => {
-            if (e.data) {
-                callback(JSON.parse(e.data));
-            }
-        });
+    useEffect(() => {
+        let eventSource: EventSource | null = null;
+        let retryTimeout: NodeJS.Timeout;
+        let reconnectDelay = 2000;
+
+        const connect = () => {
+            eventSource = new EventSource(url);
+
+            eventSource.onopen = () => {
+                reconnectDelay = 2000;
+            };
+
+            eventSource.onerror = () => {
+                eventSource?.close();
+                retryTimeout = setTimeout(() => {
+                    reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+                    connect();
+                }, reconnectDelay);
+            };
+
+            Object.entries(handlersRef.current).forEach(([event, handler]) => {
+                eventSource?.addEventListener(event, (e) => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        handler(data);
+                    } catch (err) {
+                        console.error('SSE Parse Error:', err);
+                    }
+                });
+            });
+        };
+
+        connect();
 
         return () => {
-            eventSource.close();
+            eventSource?.close();
+            clearTimeout(retryTimeout);
         };
-    }, [event, callback]);
+    }, [url]);
 }

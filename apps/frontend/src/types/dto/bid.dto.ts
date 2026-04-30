@@ -1,14 +1,17 @@
-export interface BidGetResponseDTO {
+export type BidStatus = 'active' | 'won' | 'outbid' | 'invalid';
+
+export interface BidResponse {
     id: string;
     taskId: string;
     userId: string;
+    userName: string;
+    userEmail: string;
     hoursOffered: number;
-    status: string;
-    userName?: string;
-    userEmail?: string;
+    status: BidStatus;
+    placedAt: string;
 }
 
-export interface BidCreateRequestDTO {
-    user_id: string;
+export interface BidCreateRequest {
     hours_offered: number;
+    user_id: string;
 }

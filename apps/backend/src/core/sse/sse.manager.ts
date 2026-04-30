@@ -1,26 +1,82 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 class SseManager {
-    private clients: Map<string, Response> = new Map();
+    private taskClients: Map<string, Set<Response>> = new Map();
+    private globalClients: Set<Response> = new Set();
 
-    addClient(clientId: string, res: Response) {
-        this.clients.set(clientId, res);
+    subscribe(taskId: string, res: Response): void {
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+            'X-Accel-Buffering': 'no',
+        });
+
+        res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+
+        if (!this.taskClients.has(taskId)) {
+            this.taskClients.set(taskId, new Set());
+        }
+        this.taskClients.get(taskId)!.add(res);
+        this.globalClients.add(res);
+
+        const heartbeat = setInterval(() => {
+            res.write(': heartbeat\n\n');
+        }, 15000);
+
+        res.on('close', () => {
+            clearInterval(heartbeat);
+            this.taskClients.get(taskId)?.delete(res);
+            if (this.taskClients.get(taskId)?.size === 0) {
+                this.taskClients.delete(taskId);
+            }
+            this.globalClients.delete(res);
+        });
     }
 
-    removeClient(clientId: string) {
-        this.clients.delete(clientId);
+    subscribeGlobal(res: Response): void {
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+            'X-Accel-Buffering': 'no',
+        });
+
+        res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+
+        this.globalClients.add(res);
+
+        const heartbeat = setInterval(() => {
+            res.write(': heartbeat\n\n');
+        }, 15000);
+
+        res.on('close', () => {
+            clearInterval(heartbeat);
+            this.globalClients.delete(res);
+        });
     }
 
-    broadcast(event: string, data: any) {
-        for (const [_, res] of this.clients.entries()) {
-            res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    publish(taskId: string, event: string, data: unknown): void {
+        const clients = this.taskClients.get(taskId);
+        if (!clients) return;
+        const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        for (const res of clients) {
+            try {
+                res.write(payload);
+            } catch {
+                // Ignore write errors for disconnected clients
+            }
         }
     }
 
-    sendToUser(userId: string, event: string, data: any) {
-        const res = this.clients.get(userId);
-        if (res) {
-            res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    publishGlobal(event: string, data: unknown): void {
+        const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        for (const res of this.globalClients) {
+            try {
+                res.write(payload);
+            } catch {
+                // Ignore write errors for disconnected clients
+            }
         }
     }
 }
