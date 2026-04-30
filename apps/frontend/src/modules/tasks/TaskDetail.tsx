@@ -21,8 +21,10 @@ export const TaskDetail: React.FC = () => {
         enabled: !!id,
     });
 
-    useSSE(`/api/tasks/${id}/events`, {
-        'bid:new': (_data) => {
+    const sseUrl = id ? `/api/tasks/${id}/events` : null;
+
+    useSSE(sseUrl, {
+        'bid:new': () => {
             qc.invalidateQueries({ queryKey: ['bids', id] });
             qc.invalidateQueries({ queryKey: ['tasks', id] });
             notifySuccess('New bid placed!');
@@ -42,7 +44,7 @@ export const TaskDetail: React.FC = () => {
         onSuccess: () => {
             notifySuccess('Status advanced');
             qc.invalidateQueries({ queryKey: ['tasks', id] });
-            qc.invalidateQueries({ queryKey: ['tasks'] }); // Also refresh the board
+            qc.invalidateQueries({ queryKey: ['tasks'] });
         },
         onError: (e: any) => notifyError(e.message),
     });
@@ -132,7 +134,7 @@ export const TaskDetail: React.FC = () => {
                             Publish Task
                         </button>
                     )}
-                    {task.status === 'open' && (
+                    {task.status === 'open' && activeUser?.id === task.createdBy && (
                         <button
                             onClick={() => advanceStatus.mutate('bidding_closed')}
                             className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
@@ -148,15 +150,9 @@ export const TaskDetail: React.FC = () => {
                             >
                                 Assign Best Bidder
                             </button>
-                            <button
-                                onClick={() => advanceStatus.mutate('open')}
-                                className="bg-transparent text-white border border-white/20 hover:bg-white/5 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
-                            >
-                                Re-Open Bidding
-                            </button>
                         </div>
                     )}
-                    {task.status === 'assigned' && (
+                    {task.status === 'assigned' && activeUser?.id === task.assignedTo && (
                         <button
                             onClick={() => advanceStatus.mutate('in_progress')}
                             className="bg-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-[hsl(var(--primary))/0.2]"
@@ -164,7 +160,7 @@ export const TaskDetail: React.FC = () => {
                             Start Task
                         </button>
                     )}
-                    {task.status === 'in_progress' && (
+                    {task.status === 'in_progress' && activeUser?.id === task.assignedTo && (
                         <button
                             onClick={() => advanceStatus.mutate('review')}
                             className="bg-amber-500 text-black px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-500/20"
@@ -172,7 +168,7 @@ export const TaskDetail: React.FC = () => {
                             Submit for Review
                         </button>
                     )}
-                    {task.status === 'review' && (
+                    {task.status === 'review' && activeUser?.id === task.assignedTo && (
                         <button
                             onClick={() => advanceStatus.mutate('done')}
                             className="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-500/20"

@@ -1,23 +1,21 @@
 import { useEffect, useRef } from 'react';
 
-export function useSSE(url: string, handlers: Record<string, (data: any) => void>) {
+export function useSSE(url: string | null, handlers: Record<string, (data: any) => void>) {
     const handlersRef = useRef(handlers);
 
     useEffect(() => {
         handlersRef.current = handlers;
-    });
+    }, [handlers]);
 
     useEffect(() => {
+        if (!url) return;
+
         let eventSource: EventSource | null = null;
-        let retryTimeout: NodeJS.Timeout;
+        let retryTimeout: NodeJS.Timeout | number;
         let reconnectDelay = 2000;
 
         const connect = () => {
             eventSource = new EventSource(url);
-
-            eventSource.onopen = () => {
-                reconnectDelay = 2000;
-            };
 
             eventSource.onerror = () => {
                 eventSource?.close();
@@ -27,13 +25,13 @@ export function useSSE(url: string, handlers: Record<string, (data: any) => void
                 }, reconnectDelay);
             };
 
-            Object.entries(handlersRef.current).forEach(([event, handler]) => {
-                eventSource?.addEventListener(event, (e) => {
+            Object.keys(handlersRef.current).forEach((event) => {
+                eventSource?.addEventListener(event, (e: any) => {
                     try {
                         const data = JSON.parse(e.data);
-                        handler(data);
+                        handlersRef.current[event]?.(data);
                     } catch (err) {
-                        console.error('SSE Parse Error:', err);
+                        // Silent fail
                     }
                 });
             });
@@ -43,7 +41,7 @@ export function useSSE(url: string, handlers: Record<string, (data: any) => void
 
         return () => {
             eventSource?.close();
-            clearTimeout(retryTimeout);
+            if (retryTimeout) clearTimeout(retryTimeout as any);
         };
     }, [url]);
 }

@@ -69,6 +69,7 @@ export class AssignService {
             hoursCommitted: result.hoursCommitted,
         });
         sseManager.publishGlobal('dashboard:update', { taskId });
+        sseManager.publishGlobal('queue:update', { taskId });
 
         const allBids = await this.bidRepository.findByTask(taskId);
         const loserBids = allBids.filter((b) => b.userId !== result.assignedTo);

@@ -12,7 +12,9 @@ class SseManager {
             'X-Accel-Buffering': 'no',
         });
 
-        res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+        // 2KB Preamble to bypass proxy buffering (Vite, Nginx, etc.)
+        res.write(':' + ' '.repeat(2048) + '\n\n');
+        res.write(`data: ${JSON.stringify({ type: 'connected', taskId })}\n\n`);
 
         if (!this.taskClients.has(taskId)) {
             this.taskClients.set(taskId, new Set());
@@ -21,8 +23,10 @@ class SseManager {
         this.globalClients.add(res);
 
         const heartbeat = setInterval(() => {
-            res.write(': heartbeat\n\n');
-        }, 15000);
+            if (!res.writableEnded) {
+                res.write(': heartbeat\n\n');
+            }
+        }, 10000);
 
         res.on('close', () => {
             clearInterval(heartbeat);
@@ -42,13 +46,16 @@ class SseManager {
             'X-Accel-Buffering': 'no',
         });
 
-        res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+        res.write(':' + ' '.repeat(2048) + '\n\n');
+        res.write(`data: ${JSON.stringify({ type: 'connected', scope: 'global' })}\n\n`);
 
         this.globalClients.add(res);
 
         const heartbeat = setInterval(() => {
-            res.write(': heartbeat\n\n');
-        }, 15000);
+            if (!res.writableEnded) {
+                res.write(': heartbeat\n\n');
+            }
+        }, 10000);
 
         res.on('close', () => {
             clearInterval(heartbeat);
@@ -59,12 +66,16 @@ class SseManager {
     publish(taskId: string, event: string, data: unknown): void {
         const clients = this.taskClients.get(taskId);
         if (!clients) return;
+
         const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
         for (const res of clients) {
             try {
                 res.write(payload);
+                if ((res as any).flush) {
+                    (res as any).flush();
+                }
             } catch {
-                // Ignore write errors for disconnected clients
+                // Silent fail
             }
         }
     }
@@ -74,8 +85,11 @@ class SseManager {
         for (const res of this.globalClients) {
             try {
                 res.write(payload);
+                if ((res as any).flush) {
+                    (res as any).flush();
+                }
             } catch {
-                // Ignore write errors for disconnected clients
+                // Silent fail
             }
         }
     }

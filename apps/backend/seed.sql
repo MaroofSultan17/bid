@@ -1,15 +1,16 @@
 -- Idempotent Seed Data for TaskBid (Fixed Logic Order)
 
--- Users (Alice, Bob, Carol, Dave, Eve)
+-- Users (Real Profiles)
 INSERT INTO users (id, name, email, hourly_rate, max_capacity_hours, current_workload_hours)
 VALUES 
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Alice', 'alice@taskbid.internal', 50, 40, 0),
-  ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Bob', 'bob@taskbid.internal', 45, 40, 0),
-  ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Carol', 'carol@taskbid.internal', 60, 20, 0),
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'maroofsultan17', 'maroofsultan17@gmail.com', 50, 40, 0),
+  ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'maroofsultan24', 'maroofsultan24@gmail.com', 45, 40, 0),
+  ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'maroofsultan.dev', 'maroofsultan.dev@gmail.com', 60, 20, 0),
   ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44', 'Dave', 'dave@taskbid.internal', 40, 40, 0),
   ('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55', 'Eve', 'eve@taskbid.internal', 55, 30, 0)
-ON CONFLICT (email) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
+  email = EXCLUDED.email,
   hourly_rate = EXCLUDED.hourly_rate,
   max_capacity_hours = EXCLUDED.max_capacity_hours;
 
