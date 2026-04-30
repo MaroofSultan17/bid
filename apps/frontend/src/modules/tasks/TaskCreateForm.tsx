@@ -26,7 +26,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 description: description || undefined,
                 complexity,
                 deadline: deadline ? new Date(deadline).toISOString() : undefined,
-                created_by: activeUser.id,
+                createdBy: activeUser.id,
             });
         },
         onSuccess: () => {

@@ -10,6 +10,9 @@ import { sendTestEmail } from './core/mailer/mailer';
 import userRoutes from './modules/users/user.routes';
 import taskRoutes from './modules/tasks/task.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import { AuditLogRepository } from './modules/audit/audit.repository';
+import { AuditLogController } from './modules/audit/audit.controller';
+import db from './core/db/knex';
 
 const app = express();
 
@@ -26,6 +29,10 @@ app.use(requestLogger);
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+const auditRepo = new AuditLogRepository(db);
+const auditController = new AuditLogController(auditRepo);
+app.get('/api/admin/audit-logs', auditController.getLogs);
 
 app.get('/api/events', (req, res) => {
     sseManager.subscribeGlobal(res);

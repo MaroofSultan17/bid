@@ -24,6 +24,12 @@ apiClient.interceptors.response.use(
             'status' in response.data &&
             'data' in response.data
         ) {
+            if ('meta' in response.data) {
+                return {
+                    data: response.data.data,
+                    meta: response.data.meta,
+                };
+            }
             return response.data.data;
         }
         return response.data;

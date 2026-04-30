@@ -36,10 +36,9 @@ export class TaskController {
         }
     };
 
-    getTasks = async (req: Request, res: Response, next: NextFunction) => {
+    getTasks = async (_req: Request, res: Response, next: NextFunction) => {
         try {
-            const status = req.query.status as string | undefined;
-            const tasks = await this.taskService.getTasks(status);
+            const tasks = await this.taskService.getTasks();
             const response: ApiResponse<typeof tasks> = {
                 status: 'success',
                 data: tasks,
@@ -66,7 +65,7 @@ export class TaskController {
 
     assignTask = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const initiatorId = req.body.initiator_id;
+            const initiatorId = req.body.initiatorId;
             const assignment = await this.assignService.assign(req.params.id, initiatorId);
             const response: ApiResponse<typeof assignment> = {
                 status: 'success',

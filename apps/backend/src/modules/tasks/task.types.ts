@@ -1,10 +1,22 @@
 import { z } from 'zod';
 
+export const TASK_STATUSES = [
+    'draft',
+    'open',
+    'bidding_closed',
+    'assigned',
+    'in_progress',
+    'review',
+    'done',
+] as const;
+
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+
 export const TaskCreateRequestSchema = z.object({
     title: z.string().min(3).max(200),
     description: z.string().optional(),
     complexity: z.number().int().min(1).max(5),
-    created_by: z.string().uuid(),
+    createdBy: z.string().uuid(),
     deadline: z.string().datetime().optional(),
 });
 
@@ -18,11 +30,11 @@ export const TaskStatusUpdateRequestSchema = z.object({
         'review',
         'done',
     ]),
-    updated_by: z.string().uuid(),
+    updatedBy: z.string().uuid(),
 });
 
 export const TaskAssignRequestSchema = z.object({
-    initiator_id: z.string().uuid(),
+    initiatorId: z.string().uuid(),
 });
 
 export type TaskCreateRequest = z.infer<typeof TaskCreateRequestSchema>;
@@ -46,9 +58,31 @@ export interface TaskWithBidStats extends TaskRow {
     lowestBid: number | null;
 }
 
+export interface TaskBoardSummary {
+    id: string;
+    title: string;
+    complexity: number;
+    deadline: string | null;
+    bidCount: number;
+    lowestBid: number | null;
+}
+
 export interface AssignmentResult {
     taskId: string;
     assignedTo: string;
     assignedUserName: string;
     hoursCommitted: number;
+}
+
+export interface GroupedTasksResponse {
+    draft: { count: number; tasks: TaskBoardSummary[] };
+    open: { count: number; tasks: TaskBoardSummary[] };
+    bidding_closed: { count: number; tasks: TaskBoardSummary[] };
+    assigned: { count: number; tasks: TaskBoardSummary[] };
+    in_progress: { count: number; tasks: TaskBoardSummary[] };
+    review: { count: number; tasks: TaskBoardSummary[] };
+    done: { count: number; tasks: TaskBoardSummary[] };
+    meta: {
+        totalTasks: number;
+    };
 }

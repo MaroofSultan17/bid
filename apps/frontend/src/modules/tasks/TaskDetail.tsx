@@ -45,7 +45,7 @@ export const TaskDetail: React.FC = () => {
         mutationFn: (status: TaskStatus) => {
             if (!activeUser)
                 throw new Error('Please select a user profile to perform this action.');
-            return TaskService.advanceStatus(id!, { status, updated_by: activeUser.id });
+            return TaskService.advanceStatus(id!, { status, updatedBy: activeUser.id });
         },
         onSuccess: (_res, status) => {
             const label = status.replace('_', ' ');
@@ -106,7 +106,7 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Complexity
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--primary))]">
+                            <span className="text-xl font-black text-white">
                                 {task.complexity}/5
                             </span>
                         </div>
@@ -114,7 +114,7 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Deadline
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--primary))]">
+                            <span className="text-xl font-black text-white">
                                 {task.deadline
                                     ? new Date(task.deadline).toLocaleDateString()
                                     : 'N/A'}
@@ -124,15 +124,13 @@ export const TaskDetail: React.FC = () => {
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Bids
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--primary))]">
-                                {task.bidCount}
-                            </span>
+                            <span className="text-xl font-black text-white">{task.bidCount}</span>
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                 Best Rate
                             </span>
-                            <span className="text-xl font-black text-[hsl(var(--primary))]">
+                            <span className="text-xl font-black text-white">
                                 {task.lowestBid ? `${task.lowestBid}h` : '--'}
                             </span>
                         </div>

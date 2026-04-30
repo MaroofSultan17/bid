@@ -1,8 +1,8 @@
 import React from 'react';
-import { TaskResponse } from '../../types/dto/task.dto';
+import { TaskBoardSummary } from '../../types/dto/task.dto';
 import { useNavigate } from 'react-router-dom';
 
-export const TaskCard: React.FC<{ task: TaskResponse }> = ({ task }) => {
+export const TaskCard: React.FC<{ task: TaskBoardSummary }> = ({ task }) => {
     const navigate = useNavigate();
 
     const getComplexityColor = (c: number) => {

@@ -31,6 +31,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             >
                                 Dashboard
                             </NavLink>
+                            <NavLink
+                                to="/audit"
+                                className={({ isActive }) =>
+                                    `px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all ${isActive ? 'bg-[hsl(var(--primary))] text-white shadow-[0_0_20px_rgba(47,47,228,0.3)]' : 'hover:bg-white/5 text-slate-500'}`
+                                }
+                            >
+                                Audit
+                            </NavLink>
                         </nav>
                     </div>
                     <UserSwitcher />

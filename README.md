@@ -10,6 +10,7 @@ TaskBid is a real-time collaborative task auction system where team members bid 
 - **Real-Time Updates:** SSE-powered bid lists and dashboard metrics.
 - **Capacity Management:** Prevents users from over-committing.
 - **Audit Logging:** Database-level tracking of all state changes.
+- **System Audit Viewer:** Real-time, paginated interface for tracking system activity.
 - **Interactive Dashboard:** Visual insights using Recharts.
 
 ## Tech Stack
@@ -76,6 +77,12 @@ To ensure the system remains responsive under heavy load (e.g., hundreds of conc
 - **Atomicity**: We use `SELECT ... FOR UPDATE` row-level locking during task assignment to prevent race conditions where multiple users might be over-assigned capacity simultaneously.
 - **Business Logic Defense**: Core business rules (like no self-bidding and forward-only lifecycle) are enforced via **PostgreSQL Triggers**. This provides a final line of defense, ensuring data integrity even if application-level checks are bypassed.
 
+### 4. Paginated System Audit
+We implemented a high-performance **Audit Log** system:
+- **Scalability**: The logs are served via a paginated API to handle high volumes of system activity without impacting performance.
+- **Traceability**: Every state change (status updates, assignments, bids) is linked to the performing user, providing a clear chain of custody for all task activities.
+- **Real-Time Visibility**: The audit viewer features smooth transitions and automatic data refreshing, giving administrators immediate insight into platform usage.
+
 ## API Reference
 
 | Method | Endpoint | Description |
@@ -87,6 +94,7 @@ To ensure the system remains responsive under heavy load (e.g., hundreds of conc
 | POST | `/api/tasks/:id/assign` | Auto-assign task |
 | GET | `/api/users/:id/workload` | Get user capacity |
 | GET | `/api/dashboard/stats` | Aggregated metrics |
+| GET | `/api/admin/audit-logs` | Paginated system logs |
 
 ## Deployment
 This project is configured for easy deployment to **Render** (Backend/DB) and **Vercel** or **Render Static** (Frontend).

@@ -29,10 +29,7 @@ export const TaskBoard: React.FC = () => {
         );
     }
 
-    const tasksByStatus = (status: TaskStatus) => {
-        if (!Array.isArray(tasks)) return [];
-        return tasks.filter((t) => t.status === status);
-    };
+    if (!tasks) return null;
 
     return (
         <div className="space-y-10">
@@ -60,16 +57,16 @@ export const TaskBoard: React.FC = () => {
                                 </h3>
                             </div>
                             <span className="bg-white/[0.05] px-3 py-1 rounded-xl text-[10px] font-black text-slate-500 border border-white/[0.05]">
-                                {tasksByStatus(status).length}
+                                {tasks[status]?.count || 0}
                             </span>
                         </div>
                         <div className="flex flex-col gap-5 h-[calc(100vh-340px)] overflow-y-auto rounded-[40px] glass p-4 border border-white/[0.05] custom-scrollbar">
-                            {tasksByStatus(status).map((task) => (
+                            {tasks[status]?.tasks.map((task) => (
                                 <div key={task.id} className="flex-shrink-0">
                                     <TaskCard task={task} />
                                 </div>
                             ))}
-                            {tasksByStatus(status).length === 0 && (
+                            {(tasks[status]?.count || 0) === 0 && (
                                 <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/[0.03] rounded-[32px] py-20">
                                     <span className="text-[11px] font-black text-slate-700 uppercase tracking-[0.3em]">
                                         Empty
