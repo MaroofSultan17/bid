@@ -6,7 +6,11 @@ import { AssignService } from './assign.service';
 import { UserRepository } from '../users/user.repository';
 import { BidRepository } from '../bids/bid.repository';
 import { validate } from '../../core/middleware/validate';
-import { TaskCreateRequestSchema, TaskStatusUpdateRequestSchema } from './task.types';
+import {
+    TaskCreateRequestSchema,
+    TaskStatusUpdateRequestSchema,
+    TaskAssignRequestSchema,
+} from './task.types';
 import { sseManager } from '../../core/sse/sse.manager';
 import bidRoutes from '../bids/bid.routes';
 import db from '../../core/db/knex';
@@ -24,7 +28,7 @@ router.post('/', validate(TaskCreateRequestSchema), controller.createTask);
 router.get('/', controller.getTasks);
 router.get('/:id', controller.getTask);
 router.patch('/:id/status', validate(TaskStatusUpdateRequestSchema), controller.advanceStatus);
-router.post('/:id/assign', controller.assignTask);
+router.post('/:id/assign', validate(TaskAssignRequestSchema), controller.assignTask);
 
 router.get('/:id/events', (req, res) => {
     sseManager.subscribe(req.params.id, res);

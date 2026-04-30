@@ -21,6 +21,10 @@ export const TaskStatusUpdateRequestSchema = z.object({
     updated_by: z.string().uuid(),
 });
 
+export const TaskAssignRequestSchema = z.object({
+    initiator_id: z.string().uuid(),
+});
+
 export type TaskCreateRequest = z.infer<typeof TaskCreateRequestSchema>;
 export type TaskStatusUpdateRequest = z.infer<typeof TaskStatusUpdateRequestSchema>;
 
