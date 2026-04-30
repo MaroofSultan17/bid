@@ -9,6 +9,7 @@ export interface BidResponse {
     hoursOffered: number;
     status: BidStatus;
     placedAt: string;
+    hourlyRate: number;
 }
 
 export interface BidCreateRequest {

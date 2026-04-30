@@ -86,62 +86,72 @@ export const TaskDetail: React.FC = () => {
                 Board
             </button>
 
-            <div className="glass rounded-[40px] p-10 shadow-2xl overflow-hidden relative border border-white/60">
-                <div className="absolute top-0 right-0 p-10">
-                    <span className="bg-[hsl(var(--primary))] text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20">
+            <div className="glass rounded-[48px] p-12 shadow-2xl overflow-hidden relative border border-white/5 bg-[#0D0D1F]/50">
+                {/* Background Accent */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[hsl(var(--primary))] opacity-[0.03] blur-[120px] -mr-64 -mt-64 pointer-events-none"></div>
+
+                <div className="absolute top-0 right-0 p-12">
+                    <span className="bg-[hsl(var(--primary))] text-white px-5 py-2 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 border border-white/10">
                         {task.status.replace('_', ' ')}
                     </span>
                 </div>
 
                 <div className="max-w-2xl relative z-10">
-                    <h1 className="text-4xl font-black tracking-tight text-[hsl(var(--foreground))] mb-6">
+                    <h1 className="text-5xl font-black tracking-tighter text-white mb-8">
                         {task.title}
                     </h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed mb-10">
+                    <p className="text-slate-400 font-medium text-lg leading-relaxed mb-12 max-w-xl">
                         {task.description || 'No description provided.'}
                     </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-8 border-y border-slate-100/50">
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-12 py-10 border-y border-white/5">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                 Complexity
                             </span>
-                            <span className="text-xl font-black text-white">
-                                {task.complexity}/5
+                            <span className="text-2xl font-black text-white tracking-tight">
+                                {task.complexity}<span className="text-slate-600 text-sm ml-1">/5</span>
                             </span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                 Deadline
                             </span>
-                            <span className="text-xl font-black text-white">
+                            <span className="text-2xl font-black text-white tracking-tight">
                                 {task.deadline
-                                    ? new Date(task.deadline).toLocaleDateString()
+                                    ? new Date(task.deadline).toLocaleDateString([], { month: 'short', day: 'numeric' })
                                     : 'N/A'}
                             </span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                 Bids
                             </span>
-                            <span className="text-xl font-black text-white">{task.bidCount}</span>
+                            <span className="text-2xl font-black text-white tracking-tight">{task.bidCount}</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
-                                Best Rate
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--primary))] opacity-80">
+                                Fastest Delivery
                             </span>
-                            <span className="text-xl font-black text-white">
-                                {task.lowestBid ? `${task.lowestBid}h` : '--'}
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-black text-white tracking-tighter leading-none">
+                                    {task.lowestBid ? `${task.lowestBid}h` : '--'}
+                                </span>
+                                {task.lowestBid && task.lowestBidderRate && (
+                                    <span className="text-[11px] font-black text-[hsl(var(--primary))] uppercase tracking-tighter mt-1 bg-[hsl(var(--primary))/0.1] self-start px-2 py-0.5 rounded-md">
+                                        ${(task.lowestBid * task.lowestBidderRate).toFixed(0)} Total
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 mt-10 relative z-10">
+                <div className="flex flex-wrap gap-4 mt-12 relative z-10">
                     {task.status === 'draft' && (
                         <button
                             onClick={() => advanceStatus.mutate('open')}
-                            className="bg-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[hsl(var(--secondary))] transition-all shadow-xl shadow-blue-500/20"
+                            className="bg-[hsl(var(--primary))] text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-white hover:text-[hsl(var(--primary))] transition-all shadow-2xl shadow-blue-500/20 active:scale-95"
                         >
                             Publish Task
                         </button>
@@ -149,7 +159,7 @@ export const TaskDetail: React.FC = () => {
                     {task.status === 'open' && activeUser?.id === task.createdBy && (
                         <button
                             onClick={() => advanceStatus.mutate('bidding_closed')}
-                            className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                            className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest transition-all active:scale-95"
                         >
                             Close Bidding
                         </button>
@@ -159,12 +169,12 @@ export const TaskDetail: React.FC = () => {
                             <button
                                 onClick={() => assignTask.mutate()}
                                 disabled={isDeadlinePassed(task.deadline)}
-                                className="bg-[hsl(var(--accent))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-[hsl(var(--accent))] text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
                             >
                                 Assign Best Bidder
                             </button>
                             {isDeadlinePassed(task.deadline) && (
-                                <span className="text-red-400 text-xs font-bold self-center uppercase tracking-widest">
+                                <span className="text-red-400 text-[10px] font-black self-center uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-xl border border-red-400/20">
                                     Deadline Passed
                                 </span>
                             )}
@@ -173,7 +183,7 @@ export const TaskDetail: React.FC = () => {
                     {task.status === 'assigned' && activeUser?.id === task.assignedTo && (
                         <button
                             onClick={() => advanceStatus.mutate('in_progress')}
-                            className="bg-[hsl(var(--primary))] text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[hsl(var(--secondary))] transition-all shadow-xl shadow-blue-500/20"
+                            className="bg-[hsl(var(--primary))] text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-blue-500/20"
                         >
                             Start Task
                         </button>
@@ -181,7 +191,7 @@ export const TaskDetail: React.FC = () => {
                     {task.status === 'in_progress' && activeUser?.id === task.assignedTo && (
                         <button
                             onClick={() => advanceStatus.mutate('review')}
-                            className="bg-amber-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20"
+                            className="bg-amber-500 text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-amber-600 transition-all shadow-2xl shadow-amber-500/20"
                         >
                             Submit for Review
                         </button>
@@ -189,7 +199,7 @@ export const TaskDetail: React.FC = () => {
                     {task.status === 'review' && activeUser?.id === task.createdBy && (
                         <button
                             onClick={() => advanceStatus.mutate('done')}
-                            className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20"
+                            className="bg-emerald-600 text-white px-10 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-500/20"
                         >
                             Accept & Complete Task
                         </button>
@@ -197,23 +207,24 @@ export const TaskDetail: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div className="lg:col-span-2">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 px-2 flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-500 mb-10 px-4 flex items-center gap-4">
+                        <span className="w-2 h-2 rounded-full bg-slate-700"></span>
                         Participation Pool
                     </h3>
                     <BidList taskId={task.id} />
                 </div>
                 <div>
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 px-2 flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse"></span>
+                    <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-500 mb-10 px-4 flex items-center gap-4">
+                        <span className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] animate-pulse"></span>
                         Place Your Bid
                     </h3>
                     {task.status === 'open' && !isDeadlinePassed(task.deadline) ? (
                         <BidForm taskId={task.id} taskCreatorId={task.createdBy} />
                     ) : (
-                        <div className="p-12 glass rounded-[32px] text-center text-slate-300 italic text-xs uppercase tracking-[0.2em] border-2 border-dashed border-white/40">
+                        <div className="p-16 glass rounded-[40px] text-center text-slate-500 italic text-[11px] font-black uppercase tracking-[0.3em] border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-4">
+                            <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center">🔒</div>
                             {task.status !== 'open' ? 'Bidding Closed' : 'Deadline Passed'}
                         </div>
                     )}

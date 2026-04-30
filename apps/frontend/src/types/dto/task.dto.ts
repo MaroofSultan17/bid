@@ -37,6 +37,7 @@ export interface TaskResponse {
     deadline: string | null;
     bidCount: number;
     lowestBid: number | null;
+    lowestBidderRate?: number;
     createdAt: string;
     updatedAt: string;
 }
