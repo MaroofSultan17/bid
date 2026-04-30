@@ -1,53 +1,38 @@
-# Architecture Decisions - TaskBid
+# Project Decisions
 
-This document outlines the key technical decisions made during the development of TaskBid, addressing the specific challenges posed in the assignment.
+### Why enforce constraints at the database level?
 
-## A. The Capacity Race Condition
-**Decision: Row-Level Locking (`FOR UPDATE`) within a Database Transaction.**
+We chose to enforce all core business rules—like preventing self-bidding or ensuring tasks only move forward—directly in the database using PostgreSQL triggers and unique constraints. 
 
-To prevent two simultaneous `/assign` calls from double-allocating a user's capacity, we use a single atomic transaction. 
-1. We first lock the task row.
-2. For each potential bidder, we obtain a row-level lock on the `users` table row using `SELECT ... FOR UPDATE`.
-3. Because locks are obtained in the same order (lowest bid first), we avoid deadlocks. 
-4. While the first transaction holds the lock, any second transaction attempting to lock the same user row will block until the first one commits or rolls back. 
-5. This ensures that the second transaction sees the updated `current_workload_hours` and correctly rejects the bid if the user is now over capacity.
+The main reason is **reliability**. While we check these rules in our TypeScript code for fast UI feedback, the database is the "single source of truth." By putting the rules there, we guarantee that no matter what happens in the application (bugs, race conditions, or manual API calls), the data remains 100% valid. It’s a final line of defense that keeps the system's integrity intact even under high concurrency.
 
-## B. The Stale Bid Problem
-**Decision: Late Validation and Bid Invalidation.**
+### What are the trade-offs?
 
-Bids are validated for capacity at two points:
-1. **Creation time:** We prevent placing a bid that exceeds *current* remaining capacity.
-2. **Assignment time:** We re-validate capacity because it may have changed.
+Every design choice has a cost. By moving logic into the database, we face a few trade-offs:
 
-If a bidder no longer has capacity at assignment time, their bid is marked as `invalid` and we skip to the next lowest bidder. We chose to keep the bid record with an `invalid` status rather than deleting it to maintain a complete audit trail of the auction process.
+1.  **More Complex Error Handling**: The backend has to catch specific database errors and "translate" them into friendly messages for the user. It’s more work than just checking a simple `if` statement in the code.
+2.  **Hidden Logic**: For a new developer, it’s not immediately obvious that these rules exist just by looking at the TypeScript files; they have to check the SQL migration files too.
+3.  **Testing**: We can't just rely on quick unit tests. We have to run full integration tests with a live database to make sure these triggers are actually firing and working as expected.
 
-## C. The Dashboard Query Challenge
-**Decision: Single CTE (Common Table Expression) for Aggregated Metrics.**
+### How do we handle simultaneous assignments for the same user?
 
-To optimize performance and minimize round-trips to the database, the dashboard metrics are fetched in a single query using multiple CTEs. 
-- `tasks_by_status`: Counts tasks grouped by status.
-- `avg_bid_complexity`: Calculates average hours offered per complexity level.
-- `top_users`: Identifies top contributors.
-- `expired_no_bids`: Finds tasks past deadline with zero bids.
+A critical challenge is when two different tasks try to assign themselves to the same user at the exact same time. If the user only has capacity for one task, we must ensure they aren't accidentally over-allocated.
 
-These are joined together into a single JSON response. This approach leverages PostgreSQL's powerful aggregation capabilities and reduces application-level overhead.
+Our approach uses **Atomic Transactions and Row-Level Locking**:
 
-## D. The Audit Log Design
-**Decision: Database-Level Triggers.**
+1.  **Locking the User**: When the `/assign` endpoint is called, we don't just "read" the user's capacity. We use a `SELECT ... FOR UPDATE` query. This tells the database to "lock" that specific user's row until the assignment is finished.
+2.  **Sequential Processing**: If a second task tries to assign itself to the same user while the first lock is held, the database makes it wait. 
+3.  **Fresh Data**: Once the first task is assigned and the workload is updated, the lock is released. Only then does the second task get to see the user's data. Because it now sees the *updated* (higher) workload, it will correctly realize the user is out of capacity and reject the second assignment.
 
-Audit logging for state changes (tasks and bids) is implemented using PostgreSQL triggers.
-- **Pros:** 100% guarantee that every change is captured, even if made outside the application (e.g., via psql). It keeps the application logic cleaner by separating cross-cutting concerns.
-- **Cons:** Business logic becomes "hidden" in the database, making it slightly harder to debug for developers who only look at the application code.
+### Scenario: The Capacity Race Condition
 
-We chose triggers because the requirement for an audit log is a core data integrity constraint in a collaborative system.
+**Question:** *User A has 10 hours left. Task X (5h) and Task Y (7h) both try to assign themselves to User A at the same time. How does the system handle this?*
 
-## E. Real-Time Updates
-**Decision: Server-Sent Events (SSE).**
+**Answer:**
+Even if both requests hit the server at the exact same millisecond:
+- **Request 1 (Task X)** locks User A's row. It sees 10h available, subtracts 5h, updates User A to have 5h left, and commits the transaction.
+- **Request 2 (Task Y)** is forced to wait until Request 1 is finished.
+- As soon as Request 1 commits, Request 2 wakes up, gets the lock, and reads the **new** value (5h).
+- Since 7h is more than the 5h now available, Request 2 will reject User A and move to the next lowest bidder. 
 
-We chose SSE over WebSockets for real-time bid updates and dashboard refreshes.
-- **Justification:** SSE is significantly simpler to implement (standard HTTP), automatically handles reconnection, and is perfectly suited for our unidirectional "server-to-client" update pattern. Since we don't need low-latency bidirectional communication for this specific use case, SSE provides the best trade-off between complexity and reliability.
-
-## F. Database-Level Constraints
-We enforced "no self-bidding" and "status forward-only" at the database level using triggers.
-- **Rationale:** Application-level checks are prone to bugs and bypasses. Database constraints provide the final line of defense for business invariants, ensuring the data remains consistent regardless of application state.
-- **Trade-off:** Higher development friction when testing (must handle DB exceptions) and slightly more complex migration files.
+This ensures that no user can ever be assigned more work than they have room for, even under heavy simultaneous load.
