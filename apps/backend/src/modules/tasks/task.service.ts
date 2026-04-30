@@ -31,6 +31,11 @@ export class TaskService {
         if (!task) {
             throw new AppError('Task not found', 404, 'ERR_NOT_FOUND');
         }
+
+        if (dto.status === 'in_progress' && task.assignedTo !== dto.updated_by) {
+            throw new AppError('Only the assigned user can start this task', 403, 'ERR_UNAUTHORIZED');
+        }
+
         return this.taskRepository.advanceStatus(id, dto.status);
     }
 }

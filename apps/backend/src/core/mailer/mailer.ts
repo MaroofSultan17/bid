@@ -3,20 +3,21 @@ import pino from 'pino';
 
 const logger = pino({ name: 'mailer' });
 
-const smtpHost = process.env.SMTP_HOST;
+const host = process.env.MAIL_HOST;
 
-const transporter = smtpHost
+const transporter = host
     ? nodemailer.createTransport({
-          host: smtpHost,
-          port: parseInt(process.env.SMTP_PORT || '587', 10),
+          host,
+          port: parseInt(process.env.MAIL_PORT || '587', 10),
+          secure: false, // Use false for 587 (STARTTLS)
           auth: {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS,
+              user: process.env.MAIL_USERNAME,
+              pass: process.env.MAIL_PASSWORD,
           },
       })
     : null;
 
-const from = process.env.SMTP_FROM || '"TaskBid" <noreply@taskbid.internal>';
+const from = process.env.MAIL_FROM_ADDRESS || '"TaskBid" <noreply@taskbid.internal>';
 
 export async function sendOutbidEmail(
     to: string,

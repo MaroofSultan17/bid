@@ -5,7 +5,7 @@ import pino from 'pino';
 
 const logger = pino({ name: 'notification-worker' });
 
-notificationQueue.process(async (job) => {
+notificationQueue.process('*', async (job) => {
     const { data } = job;
 
     try {
