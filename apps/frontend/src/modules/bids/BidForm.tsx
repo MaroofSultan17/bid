@@ -76,14 +76,19 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
                 <div className="relative">
                     <input
                         type="number"
-                        className={`w-full bg-[hsl(var(--background))] border p-4 rounded-2xl focus:outline-none focus:ring-2 transition-all font-black text-2xl ${
-                            isOverCapacity
+                        min={1}
+                        className={`w-full bg-[hsl(var(--background))] border p-4 rounded-2xl focus:outline-none focus:ring-2 transition-all font-black text-2xl text-white ${
+                            isOverCapacity || Number(hours) < 0
                                 ? 'border-red-500/50 focus:ring-red-500'
                                 : 'border-[hsl(var(--primary))/0.2] focus:ring-[hsl(var(--primary))]'
                         }`}
                         placeholder="0"
                         value={hours}
-                        onChange={(e) => setHours(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (Number(val) < 0) return;
+                            setHours(val);
+                        }}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black opacity-20 text-xl">
                         HOURS

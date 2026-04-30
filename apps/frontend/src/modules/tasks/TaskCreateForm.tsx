@@ -53,7 +53,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             Title
                         </label>
                         <input
-                            className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold"
+                            className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold text-white"
                             placeholder="What needs to be done?"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
@@ -65,7 +65,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             Description
                         </label>
                         <textarea
-                            className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-medium h-32"
+                            className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-medium h-32 text-white"
                             placeholder="Add more details..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -81,7 +81,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                 type="number"
                                 min={1}
                                 max={5}
-                                className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold"
+                                className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold text-white"
                                 value={complexity}
                                 onChange={(e) => setComplexity(Number(e.target.value))}
                             />
@@ -92,7 +92,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             </label>
                             <input
                                 type="datetime-local"
-                                className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold"
+                                className="w-full bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.2] p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all font-bold text-white"
                                 value={deadline}
                                 onChange={(e) => setDeadline(e.target.value)}
                             />

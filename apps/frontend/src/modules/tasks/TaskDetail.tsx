@@ -141,12 +141,20 @@ export const TaskDetail: React.FC = () => {
                         </button>
                     )}
                     {task.status === 'bidding_closed' && (
-                        <button
-                            onClick={() => assignTask.mutate()}
-                            className="bg-[hsl(var(--accent))] text-black px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-[hsl(var(--accent))/0.2]"
-                        >
-                            Assign Best Bidder
-                        </button>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => assignTask.mutate()}
+                                className="bg-[hsl(var(--accent))] text-black px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-[hsl(var(--accent))/0.2]"
+                            >
+                                Assign Best Bidder
+                            </button>
+                            <button
+                                onClick={() => advanceStatus.mutate('open')}
+                                className="bg-transparent text-white border border-white/20 hover:bg-white/5 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                            >
+                                Re-Open Bidding
+                            </button>
+                        </div>
                     )}
                     {task.status === 'assigned' && (
                         <button

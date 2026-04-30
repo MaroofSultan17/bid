@@ -43,6 +43,9 @@ DECLARE
   ];
 BEGIN
   IF array_position(status_order, NEW.status::TEXT) < array_position(status_order, OLD.status::TEXT) THEN
+    IF OLD.status = 'bidding_closed' AND NEW.status = 'open' THEN
+      RETURN NEW;
+    END IF;
     RAISE EXCEPTION 'ERR_STATUS_BACKWARD: Cannot move task from % to %', OLD.status, NEW.status;
   END IF;
   RETURN NEW;
