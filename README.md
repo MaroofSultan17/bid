@@ -44,6 +44,20 @@ TaskBid is a real-time collaborative task auction system where team members bid 
    - **Backend API**: [http://localhost:3001/api](http://localhost:3001/api)
    - **Database**: Port `5432` (User: `taskbid`, Pass: `secret`)
 
+### Verification (Race Condition Test)
+
+To verify that the system correctly prevents race conditions during task assignment (e.g., preventing a user from being over-assigned capacity when multiple assignments happen simultaneously), run the following command:
+
+```bash
+docker exec -it buggcy-backend-1 npm run test:race
+```
+
+This script will:
+1. Create temporary test users.
+2. Fire simultaneous assignment requests.
+3. Verify that only one request succeeds while the other is rejected.
+4. Automatically clean up all test data.
+
 
 ## Technical Choices & Justifications
 
