@@ -18,7 +18,6 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 apiClient.interceptors.response.use(
     (response: AxiosResponse) => {
-        // Handle standard API response wrapper
         if (
             response.data &&
             typeof response.data === 'object' &&
@@ -32,7 +31,6 @@ apiClient.interceptors.response.use(
     (error: any) => {
         let message = error.response?.data?.message || error.message || 'Something went wrong';
 
-        // Extract specific Zod validation errors if available
         if (
             error.response?.data?.error?.details &&
             Array.isArray(error.response.data.error.details)

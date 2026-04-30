@@ -24,20 +24,26 @@ TaskBid is a real-time collaborative task auction system where team members bid 
 - Node.js 20+
 
 ### Local Setup
-1. Clone the repository.
-2. Run the entire stack:
+
+1. **Clone the repository** and navigate to the root directory.
+2. **Start the stack** in detached mode:
    ```bash
-   docker-compose up --build
+   docker-compose up -d --build
    ```
-3. Run migrations and seed data (in a new terminal):
+3. **Initialize the database** (Run migrations and seed data):
    ```bash
-   # In apps/backend
-   npm run migrate
-   npm run seed
+   # Run migrations
+   docker exec -it buggcy-backend-1 npm run migrate
+
+   # Seed the database with initial data
+   docker exec -it buggcy-backend-1 npx ts-node src/core/db/seed.ts
    ```
-4. Access the app:
-   - Frontend: `http://localhost:5173`
-   - Backend API: `http://localhost:3001/api`
+
+4. **Access the Application**:
+   - **Frontend**: [http://localhost:5173](http://localhost:5173)
+   - **Backend API**: [http://localhost:3001/api](http://localhost:3001/api)
+   - **Database**: Port `5432` (User: `taskbid`, Pass: `secret`)
+
 
 ## Technical Choices & Justifications
 
