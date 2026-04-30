@@ -11,9 +11,8 @@ class SseManager {
             Connection: 'keep-alive',
             'X-Accel-Buffering': 'no',
         });
+        res.flushHeaders();
 
-        // 2KB Preamble to bypass proxy buffering (Vite, Nginx, etc.)
-        res.write(':' + ' '.repeat(2048) + '\n\n');
         res.write(`data: ${JSON.stringify({ type: 'connected', taskId })}\n\n`);
 
         if (!this.taskClients.has(taskId)) {
@@ -45,8 +44,8 @@ class SseManager {
             Connection: 'keep-alive',
             'X-Accel-Buffering': 'no',
         });
+        res.flushHeaders();
 
-        res.write(':' + ' '.repeat(2048) + '\n\n');
         res.write(`data: ${JSON.stringify({ type: 'connected', scope: 'global' })}\n\n`);
 
         this.globalClients.add(res);

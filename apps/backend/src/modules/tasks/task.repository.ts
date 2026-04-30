@@ -2,10 +2,11 @@ import { Knex } from 'knex';
 import { TaskCreateRequest, TaskRow, TaskWithBidStats } from './task.types';
 
 export class TaskRepository {
-    constructor(private db: Knex) { }
+    constructor(public db: Knex) {}
 
-    async create(dto: TaskCreateRequest): Promise<TaskRow> {
-        const [task] = await this.db('tasks')
+    async create(dto: TaskCreateRequest, trx?: Knex.Transaction): Promise<TaskRow> {
+        const client = trx || this.db;
+        const [task] = await client('tasks')
             .insert({
                 title: dto.title,
                 description: dto.description,
@@ -35,9 +36,9 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)::float    AS "lowestBid"
+             MIN(CASE WHEN b.status IN ('active', 'won') THEN b.hours_offered END)::float AS "lowestBid"
       FROM   tasks t
-      LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
+      LEFT   JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
       WHERE  t.id = ?
       GROUP  BY t.id
     `,
@@ -52,9 +53,9 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)::float    AS "lowestBid"
+             MIN(CASE WHEN b.status IN ('active', 'won') THEN b.hours_offered END)::float AS "lowestBid"
       FROM   tasks t
-      LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
+      LEFT   JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
     `;
         const params: any[] = [];
         if (status) {

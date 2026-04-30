@@ -11,7 +11,10 @@ export class TaskService {
     constructor(private taskRepository: TaskRepository) {}
 
     async createTask(dto: TaskCreateRequest): Promise<TaskRow> {
-        return this.taskRepository.create(dto);
+        return this.taskRepository.db.transaction(async (trx) => {
+            await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.created_by]);
+            return this.taskRepository.create(dto, trx);
+        });
     }
 
     async getTask(id: string): Promise<TaskWithBidStats> {
@@ -27,15 +30,42 @@ export class TaskService {
     }
 
     async advanceStatus(id: string, dto: TaskStatusUpdateRequest): Promise<TaskRow> {
-        const task = await this.taskRepository.findById(id);
-        if (!task) {
-            throw new AppError('Task not found', 404, 'ERR_NOT_FOUND');
-        }
+        return this.taskRepository.db.transaction(async (trx) => {
+            await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.updated_by]);
 
-        if (dto.status === 'in_progress' && task.assignedTo !== dto.updated_by) {
-            throw new AppError('Only the assigned user can start this task', 403, 'ERR_UNAUTHORIZED');
-        }
+            const task = await this.taskRepository.findById(id);
+            if (!task) {
+                throw new AppError('The requested task does not exist.', 404, 'ERR_NOT_FOUND');
+            }
 
-        return this.taskRepository.advanceStatus(id, dto.status);
+            if (dto.status === 'bidding_closed' && task.createdBy !== dto.updated_by) {
+                throw new AppError(
+                    'Access denied: Only the task creator can close bidding.',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
+            }
+
+            if (dto.status === 'done' && task.createdBy !== dto.updated_by) {
+                throw new AppError(
+                    'Access denied: Final acceptance must be performed by the task creator.',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
+            }
+
+            if (
+                ['in_progress', 'review'].includes(dto.status) &&
+                task.assignedTo !== dto.updated_by
+            ) {
+                throw new AppError(
+                    'Access denied: Only the assigned user can update the progress or submit for review.',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
+            }
+
+            return this.taskRepository.advanceStatus(id, dto.status, trx);
+        });
     }
 }

@@ -12,11 +12,14 @@ async function runMigrations() {
         .filter((f) => f.endsWith('.sql'))
         .sort();
 
-    await db.schema.createTableIfNotExists('migration_log', (table) => {
-        table.increments('id').primary();
-        table.string('filename').notNullable().unique();
-        table.timestamp('applied_at').defaultTo(db.fn.now());
-    });
+    const hasLogTable = await db.schema.hasTable('migration_log');
+    if (!hasLogTable) {
+        await db.schema.createTable('migration_log', (table) => {
+            table.increments('id').primary();
+            table.string('filename').notNullable().unique();
+            table.timestamp('applied_at').defaultTo(db.fn.now());
+        });
+    }
 
     for (const file of files) {
         const applied = await db('migration_log').where({ filename: file }).first();

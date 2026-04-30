@@ -33,7 +33,8 @@ app.get('/api/events', (req, res) => {
 
 app.get('/api/admin/test-email', async (req, res) => {
     try {
-        const to = (req.query.to as string) || process.env.MAIL_USERNAME || 'maroofsultan17@gmail.com';
+        const to =
+            (req.query.to as string) || process.env.MAIL_USERNAME || 'maroofsultan17@gmail.com';
         await sendTestEmail(to);
         res.json({ success: true, message: `Test email sent to ${to}. Check your inbox!` });
     } catch (err: any) {

@@ -41,7 +41,10 @@ export const TaskBoard: React.FC = () => {
 
             <div className="flex gap-6 overflow-x-auto pb-8 items-start snap-x scroll-smooth scrollbar-hide">
                 {TASK_STATUS_ORDER.map((status) => (
-                    <div key={status} className="flex flex-col gap-4 w-[350px] flex-shrink-0 snap-start">
+                    <div
+                        key={status}
+                        className="flex flex-col gap-4 w-[350px] flex-shrink-0 snap-start"
+                    >
                         <div className="flex items-center justify-between px-4">
                             <div className="flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_10px] shadow-[hsl(var(--primary))]"></div>

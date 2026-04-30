@@ -27,22 +27,24 @@ export const TaskDetail: React.FC = () => {
         'bid:new': () => {
             qc.invalidateQueries({ queryKey: ['bids', id] });
             qc.invalidateQueries({ queryKey: ['tasks', id] });
-            notifySuccess('New bid placed!');
+            notifySuccess('A new bid has been placed on this task.');
         },
         'task:assigned': (data) => {
             qc.invalidateQueries({ queryKey: ['tasks', id] });
             qc.invalidateQueries({ queryKey: ['bids', id] });
-            notifySuccess(`Task assigned to ${data.assignedUserName}`);
+            notifySuccess(`Task successfully assigned to ${data.assignedUserName}.`);
         },
     });
 
     const advanceStatus = useMutation({
         mutationFn: (status: TaskStatus) => {
-            if (!activeUser) throw new Error('Please select a user first');
+            if (!activeUser)
+                throw new Error('Please select a user profile to perform this action.');
             return TaskService.advanceStatus(id!, { status, updated_by: activeUser.id });
         },
-        onSuccess: () => {
-            notifySuccess('Status advanced');
+        onSuccess: (res, status) => {
+            const label = status.replace('_', ' ');
+            notifySuccess(`Task status successfully updated to ${label}.`);
             qc.invalidateQueries({ queryKey: ['tasks', id] });
             qc.invalidateQueries({ queryKey: ['tasks'] });
         },
@@ -50,9 +52,13 @@ export const TaskDetail: React.FC = () => {
     });
 
     const assignTask = useMutation({
-        mutationFn: () => TaskService.assignTask(id!),
+        mutationFn: () => {
+            if (!activeUser)
+                throw new Error('Please select a user profile to perform this action.');
+            return TaskService.assignTask(id!, activeUser.id);
+        },
         onSuccess: () => {
-            notifySuccess('Task assigned intelligently');
+            notifySuccess('Task has been intelligently assigned to the best eligible bidder.');
             qc.invalidateQueries({ queryKey: ['tasks', id] });
         },
         onError: (e: any) => notifyError(e.message),
@@ -168,12 +174,12 @@ export const TaskDetail: React.FC = () => {
                             Submit for Review
                         </button>
                     )}
-                    {task.status === 'review' && activeUser?.id === task.assignedTo && (
+                    {task.status === 'review' && activeUser?.id === task.createdBy && (
                         <button
                             onClick={() => advanceStatus.mutate('done')}
                             className="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-500/20"
                         >
-                            Complete Task
+                            Accept & Complete Task
                         </button>
                     )}
                 </div>

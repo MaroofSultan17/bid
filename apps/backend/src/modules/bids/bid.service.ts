@@ -1,13 +1,41 @@
 import { BidRepository } from './bid.repository';
 import { BidCreateRequest, BidRow, BidWithUser } from './bid.types';
 import { sseManager } from '../../core/sse/sse.manager';
+import { AppError } from '../../core/types';
 import { notificationQueue, JOB } from '../../core/queue/queue';
 
 export class BidService {
     constructor(private bidRepository: BidRepository) {}
 
     async createBid(taskId: string, dto: BidCreateRequest): Promise<BidRow> {
-        const bid = await this.bidRepository.create(taskId, dto);
+        const bid = await this.bidRepository.db.transaction(async (trx) => {
+            await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.user_id]);
+
+            const user = await this.bidRepository
+                .db('users')
+                .where({ id: dto.user_id })
+                .select('current_workload_hours', 'max_capacity_hours')
+                .first();
+
+            if (!user) {
+                throw new AppError(
+                    'The specified user profile was not found.',
+                    404,
+                    'ERR_USER_NOT_FOUND'
+                );
+            }
+
+            const remaining = Number(user.max_capacity_hours) - Number(user.current_workload_hours);
+            if (dto.hours_offered > remaining) {
+                throw new AppError(
+                    `Bid exceeds your remaining available capacity (${remaining}h).`,
+                    422,
+                    'ERR_OVER_CAPACITY'
+                );
+            }
+
+            return this.bidRepository.create(taskId, dto, trx);
+        });
 
         const bidsWithUser = await this.bidRepository.findByTask(taskId);
         const newBidWithUser = bidsWithUser.find((b) => b.id === bid.id);

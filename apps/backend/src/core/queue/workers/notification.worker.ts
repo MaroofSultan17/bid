@@ -1,36 +1,27 @@
 import { notificationQueue, JOB } from '../queue';
-import { sendOutbidEmail, sendAssignmentEmail } from '../../mailer/mailer';
-import { sseManager } from '../../sse/sse.manager';
+import { sendEmail } from '../../mailer/mailer';
 import pino from 'pino';
 
-const logger = pino({ name: 'notification-worker' });
+const logger = pino({ name: 'worker' });
 
-notificationQueue.process('*', async (job) => {
-    const { data } = job;
-
-    try {
-        switch (job.name) {
-            case JOB.OUTBID_EMAIL: {
-                await sendOutbidEmail(data.email, data.taskTitle, data.newLowestBid);
-                logger.info({ jobId: job.id }, 'Outbid email sent');
-                break;
-            }
-            case JOB.ASSIGNMENT_EMAIL: {
-                await sendAssignmentEmail(data.email, data.taskTitle, data.hoursCommitted, data.won);
-                logger.info({ jobId: job.id }, 'Assignment email sent');
-                break;
-            }
-            default:
-                logger.warn({ jobName: job.name }, 'Unknown job type');
-        }
-    } finally {
-        sseManager.publishGlobal('queue:update', {});
-    }
+notificationQueue.process(JOB.OUTBID_EMAIL, async (job) => {
+    const { email, taskTitle, newLowestBid } = job.data;
+    logger.info(`Processing outbid email for ${email}`);
+    await sendEmail(
+        email,
+        `You have been outbid on ${taskTitle}`,
+        `<p>A new lower bid of <b>${newLowestBid} hours</b> has been placed.</p>`
+    );
 });
 
-notificationQueue.on('failed', (job, err) => {
-    logger.error({ jobId: job?.id, err: err.message }, 'Job failed');
-    sseManager.publishGlobal('queue:update', {});
+notificationQueue.process(JOB.ASSIGNMENT_EMAIL, async (job) => {
+    const { email, taskTitle, hoursCommitted, won } = job.data;
+    const subject = won ? `You WON the task: ${taskTitle}` : `Task assignment update: ${taskTitle}`;
+    const content = won
+        ? `<p>Congratulations! You have been assigned to <b>${taskTitle}</b> for ${hoursCommitted} hours.</p>`
+        : `<p>The task <b>${taskTitle}</b> has been assigned to another bidder.</p>`;
+
+    await sendEmail(email, subject, content);
 });
 
 logger.info('Notification worker started');

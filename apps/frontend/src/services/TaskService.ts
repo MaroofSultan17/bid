@@ -19,7 +19,7 @@ export const TaskService = {
         return apiClient.patch(`/tasks/${id}/status`, data);
     },
 
-    async assignTask(id: string): Promise<any> {
-        return apiClient.post(`/tasks/${id}/assign`);
+    async assignTask(id: string, initiator_id: string): Promise<any> {
+        return apiClient.post(`/tasks/${id}/assign`, { initiator_id });
     },
 };

@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { BidCreateRequest, BidRow, BidWithUser } from './bid.types';
 
 export class BidRepository {
-    constructor(private db: Knex) {}
+    constructor(public db: Knex) {}
 
     async create(taskId: string, dto: BidCreateRequest, trx?: Knex.Transaction): Promise<BidRow> {
         const client = trx || this.db;
