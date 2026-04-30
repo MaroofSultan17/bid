@@ -11,7 +11,10 @@ export class TaskService {
     constructor(private taskRepository: TaskRepository) {}
 
     async createTask(dto: TaskCreateRequest): Promise<TaskRow> {
-        return this.taskRepository.create(dto);
+        return this.taskRepository.db.transaction(async (trx) => {
+            await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.created_by]);
+            return this.taskRepository.create(dto, trx);
+        });
     }
 
     async getTask(id: string): Promise<TaskWithBidStats> {
@@ -27,15 +30,37 @@ export class TaskService {
     }
 
     async advanceStatus(id: string, dto: TaskStatusUpdateRequest): Promise<TaskRow> {
-        const task = await this.taskRepository.findById(id);
-        if (!task) {
-            throw new AppError('Task not found', 404, 'ERR_NOT_FOUND');
-        }
+        return this.taskRepository.db.transaction(async (trx) => {
+            // Requirement 2.1: Audit log user attribution (Using set_config for safety)
+            await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.updated_by]);
 
-        if (dto.status === 'in_progress' && task.assignedTo !== dto.updated_by) {
-            throw new AppError('Only the assigned user can start this task', 403, 'ERR_UNAUTHORIZED');
-        }
+            const task = await this.taskRepository.findById(id);
+            if (!task) {
+                throw new AppError('Task not found', 404, 'ERR_NOT_FOUND');
+            }
 
-        return this.taskRepository.advanceStatus(id, dto.status);
+            // Requirement: Task creator controls bidding closure
+            if (dto.status === 'bidding_closed' && task.createdBy !== dto.updated_by) {
+                throw new AppError(
+                    'Only the task creator can close bidding',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
+            }
+
+            // Requirement: Only assigned user can start task
+            if (
+                ['in_progress', 'review', 'done'].includes(dto.status) &&
+                task.assignedTo !== dto.updated_by
+            ) {
+                throw new AppError(
+                    'Only the assigned user can update this task state',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
+            }
+
+            return this.taskRepository.advanceStatus(id, dto.status, trx);
+        });
     }
 }

@@ -34,7 +34,30 @@ CREATE TRIGGER trg_require_task_open
   BEFORE INSERT ON bids
   FOR EACH ROW EXECUTE FUNCTION fn_require_task_open();
 
--- Prevent status from moving backward
+-- NEW: Enforce capacity validation on bid insertion (Requirement 2.3)
+CREATE OR REPLACE FUNCTION fn_check_bid_capacity()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_current_workload NUMERIC;
+  v_max_capacity NUMERIC;
+BEGIN
+  SELECT current_workload_hours, max_capacity_hours 
+  INTO v_current_workload, v_max_capacity
+  FROM users WHERE id = NEW.user_id;
+
+  IF (v_current_workload + NEW.hours_offered) > v_max_capacity THEN
+    RAISE EXCEPTION 'ERR_OVER_CAPACITY: Bid exceeds remaining capacity of %h', (v_max_capacity - v_current_workload);
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_check_bid_capacity ON bids;
+CREATE TRIGGER trg_check_bid_capacity
+  BEFORE INSERT ON bids
+  FOR EACH ROW EXECUTE FUNCTION fn_check_bid_capacity();
+
+-- Prevent status from moving backward (Strictly forward-only, Requirement 2.2 & 5)
 CREATE OR REPLACE FUNCTION fn_enforce_status_forward()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -43,9 +66,6 @@ DECLARE
   ];
 BEGIN
   IF array_position(status_order, NEW.status::TEXT) < array_position(status_order, OLD.status::TEXT) THEN
-    IF OLD.status = 'bidding_closed' AND NEW.status = 'open' THEN
-      RETURN NEW;
-    END IF;
     RAISE EXCEPTION 'ERR_STATUS_BACKWARD: Cannot move task from % to %', OLD.status, NEW.status;
   END IF;
   RETURN NEW;
@@ -57,17 +77,34 @@ CREATE TRIGGER trg_enforce_status_forward
   BEFORE UPDATE OF status ON tasks
   FOR EACH ROW EXECUTE FUNCTION fn_enforce_status_forward();
 
--- Audit log for task changes
+-- Audit log helper to get current user
+CREATE OR REPLACE FUNCTION fn_get_current_user() 
+RETURNS UUID AS $$
+BEGIN
+  RETURN NULLIF(current_setting('app.current_user_id', true), '')::UUID;
+EXCEPTION WHEN OTHERS THEN
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Audit log for task changes (Capturing who, Requirement 2.1)
 CREATE OR REPLACE FUNCTION fn_audit_task()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id UUID := fn_get_current_user();
 BEGIN
-  IF OLD.status IS DISTINCT FROM NEW.status THEN
-    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value)
-    VALUES ('task', NEW.id, 'status', to_jsonb(OLD.status::TEXT), to_jsonb(NEW.status::TEXT));
-  END IF;
-  IF OLD.assigned_to IS DISTINCT FROM NEW.assigned_to THEN
-    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value)
-    VALUES ('task', NEW.id, 'assigned_to', to_jsonb(OLD.assigned_to), to_jsonb(NEW.assigned_to));
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value, changed_by)
+    VALUES ('task', NEW.id, 'status', NULL, to_jsonb(NEW.status::TEXT), v_user_id);
+  ELSE
+    IF OLD.status IS DISTINCT FROM NEW.status THEN
+      INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value, changed_by)
+      VALUES ('task', NEW.id, 'status', to_jsonb(OLD.status::TEXT), to_jsonb(NEW.status::TEXT), v_user_id);
+    END IF;
+    IF OLD.assigned_to IS DISTINCT FROM NEW.assigned_to THEN
+      INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value, changed_by)
+      VALUES ('task', NEW.id, 'assigned_to', to_jsonb(OLD.assigned_to), to_jsonb(NEW.assigned_to), v_user_id);
+    END IF;
   END IF;
   RETURN NEW;
 END;
@@ -75,19 +112,22 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_audit_task ON tasks;
 CREATE TRIGGER trg_audit_task
-  AFTER UPDATE ON tasks
+  AFTER INSERT OR UPDATE ON tasks
   FOR EACH ROW EXECUTE FUNCTION fn_audit_task();
 
--- Audit log for bid changes
+
+-- Audit log for bid changes (Capturing who, Requirement 2.1)
 CREATE OR REPLACE FUNCTION fn_audit_bid()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id UUID := fn_get_current_user();
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value)
-    VALUES ('bid', NEW.id, 'status', NULL, to_jsonb(NEW.status::TEXT));
+    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value, changed_by)
+    VALUES ('bid', NEW.id, 'status', NULL, to_jsonb(NEW.status::TEXT), v_user_id);
   ELSIF OLD.status IS DISTINCT FROM NEW.status THEN
-    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value)
-    VALUES ('bid', NEW.id, 'status', to_jsonb(OLD.status::TEXT), to_jsonb(NEW.status::TEXT));
+    INSERT INTO audit_logs(entity_type, entity_id, field_changed, old_value, new_value, changed_by)
+    VALUES ('bid', NEW.id, 'status', to_jsonb(OLD.status::TEXT), to_jsonb(NEW.status::TEXT), v_user_id);
   END IF;
   RETURN NEW;
 END;
@@ -97,3 +137,4 @@ DROP TRIGGER IF EXISTS trg_audit_bid ON bids;
 CREATE TRIGGER trg_audit_bid
   AFTER INSERT OR UPDATE ON bids
   FOR EACH ROW EXECUTE FUNCTION fn_audit_bid();
+

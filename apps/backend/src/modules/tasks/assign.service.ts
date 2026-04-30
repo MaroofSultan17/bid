@@ -15,8 +15,11 @@ export class AssignService {
         private userRepository: UserRepository
     ) {}
 
-    async assign(taskId: string): Promise<AssignmentResult> {
+    async assign(taskId: string, initiatorId?: string): Promise<AssignmentResult> {
         const result = await this.db.transaction(async (trx) => {
+            if (initiatorId) {
+                await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [initiatorId]);
+            }
             const task = await this.taskRepository.lockForAssign(taskId, trx);
             if (!task) {
                 throw new AppError(

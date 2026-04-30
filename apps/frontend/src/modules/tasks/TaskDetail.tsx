@@ -50,7 +50,10 @@ export const TaskDetail: React.FC = () => {
     });
 
     const assignTask = useMutation({
-        mutationFn: () => TaskService.assignTask(id!),
+        mutationFn: () => {
+            if (!activeUser) throw new Error('Please select a user first');
+            return TaskService.assignTask(id!, activeUser.id);
+        },
         onSuccess: () => {
             notifySuccess('Task assigned intelligently');
             qc.invalidateQueries({ queryKey: ['tasks', id] });

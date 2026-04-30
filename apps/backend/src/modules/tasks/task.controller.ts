@@ -66,7 +66,8 @@ export class TaskController {
 
     assignTask = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const assignment = await this.assignService.assign(req.params.id);
+            const initiatorId = req.body.initiator_id;
+            const assignment = await this.assignService.assign(req.params.id, initiatorId);
             const response: ApiResponse<typeof assignment> = {
                 status: 'success',
                 data: assignment,

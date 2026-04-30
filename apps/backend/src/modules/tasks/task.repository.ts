@@ -2,10 +2,13 @@ import { Knex } from 'knex';
 import { TaskCreateRequest, TaskRow, TaskWithBidStats } from './task.types';
 
 export class TaskRepository {
-    constructor(private db: Knex) { }
+    constructor(
+        public db: Knex
+    ) { }
 
-    async create(dto: TaskCreateRequest): Promise<TaskRow> {
-        const [task] = await this.db('tasks')
+    async create(dto: TaskCreateRequest, trx?: Knex.Transaction): Promise<TaskRow> {
+        const client = trx || this.db;
+        const [task] = await client('tasks')
             .insert({
                 title: dto.title,
                 description: dto.description,
