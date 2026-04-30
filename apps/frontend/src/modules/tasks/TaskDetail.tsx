@@ -38,7 +38,8 @@ export const TaskDetail: React.FC = () => {
 
     const advanceStatus = useMutation({
         mutationFn: (status: TaskStatus) => {
-            if (!activeUser) throw new Error('Please select a user profile to perform this action.');
+            if (!activeUser)
+                throw new Error('Please select a user profile to perform this action.');
             return TaskService.advanceStatus(id!, { status, updated_by: activeUser.id });
         },
         onSuccess: (res, status) => {
@@ -52,7 +53,8 @@ export const TaskDetail: React.FC = () => {
 
     const assignTask = useMutation({
         mutationFn: () => {
-            if (!activeUser) throw new Error('Please select a user profile to perform this action.');
+            if (!activeUser)
+                throw new Error('Please select a user profile to perform this action.');
             return TaskService.assignTask(id!, activeUser.id);
         },
         onSuccess: () => {

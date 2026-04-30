@@ -11,13 +11,18 @@ export class BidService {
         const bid = await this.bidRepository.db.transaction(async (trx) => {
             await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.user_id]);
 
-            const user = await this.bidRepository.db('users')
+            const user = await this.bidRepository
+                .db('users')
                 .where({ id: dto.user_id })
                 .select('current_workload_hours', 'max_capacity_hours')
                 .first();
 
             if (!user) {
-                throw new AppError('The specified user profile was not found.', 404, 'ERR_USER_NOT_FOUND');
+                throw new AppError(
+                    'The specified user profile was not found.',
+                    404,
+                    'ERR_USER_NOT_FOUND'
+                );
             }
 
             const remaining = Number(user.max_capacity_hours) - Number(user.current_workload_hours);

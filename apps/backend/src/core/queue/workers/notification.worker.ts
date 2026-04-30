@@ -17,10 +17,10 @@ notificationQueue.process(JOB.OUTBID_EMAIL, async (job) => {
 notificationQueue.process(JOB.ASSIGNMENT_EMAIL, async (job) => {
     const { email, taskTitle, hoursCommitted, won } = job.data;
     const subject = won ? `You WON the task: ${taskTitle}` : `Task assignment update: ${taskTitle}`;
-    const content = won 
+    const content = won
         ? `<p>Congratulations! You have been assigned to <b>${taskTitle}</b> for ${hoursCommitted} hours.</p>`
         : `<p>The task <b>${taskTitle}</b> has been assigned to another bidder.</p>`;
-    
+
     await sendEmail(email, subject, content);
 });
 

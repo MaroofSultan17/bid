@@ -16,7 +16,8 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
     const mutation = useMutation({
         mutationFn: () => {
             if (!activeUser) throw new Error('Please select a user profile to place a bid.');
-            if (activeUser.id === taskCreatorId) throw new Error('Action denied: Task creators cannot bid on their own tasks.');
+            if (activeUser.id === taskCreatorId)
+                throw new Error('Action denied: Task creators cannot bid on their own tasks.');
             return BidService.placeBid(taskId, {
                 hours_offered: Number(hours),
                 user_id: activeUser.id,

@@ -31,7 +31,11 @@ export class AssignService {
 
             const bids = await this.bidRepository.findActiveBidsForAssign(taskId, trx);
             if (bids.length === 0) {
-                throw new AppError('Assignment failed: No bids found to evaluate for this task.', 422, 'ERR_NO_BIDS');
+                throw new AppError(
+                    'Assignment failed: No bids found to evaluate for this task.',
+                    422,
+                    'ERR_NO_BIDS'
+                );
             }
 
             for (const bid of bids) {

@@ -47,11 +47,22 @@ export class TaskService {
             }
 
             if (dto.status === 'done' && task.createdBy !== dto.updated_by) {
-                throw new AppError('Access denied: Final acceptance must be performed by the task creator.', 403, 'ERR_UNAUTHORIZED');
+                throw new AppError(
+                    'Access denied: Final acceptance must be performed by the task creator.',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
             }
 
-            if (['in_progress', 'review'].includes(dto.status) && task.assignedTo !== dto.updated_by) {
-                throw new AppError('Access denied: Only the assigned user can update the progress or submit for review.', 403, 'ERR_UNAUTHORIZED');
+            if (
+                ['in_progress', 'review'].includes(dto.status) &&
+                task.assignedTo !== dto.updated_by
+            ) {
+                throw new AppError(
+                    'Access denied: Only the assigned user can update the progress or submit for review.',
+                    403,
+                    'ERR_UNAUTHORIZED'
+                );
             }
 
             return this.taskRepository.advanceStatus(id, dto.status, trx);

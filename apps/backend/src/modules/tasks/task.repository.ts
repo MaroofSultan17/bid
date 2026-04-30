@@ -2,9 +2,7 @@ import { Knex } from 'knex';
 import { TaskCreateRequest, TaskRow, TaskWithBidStats } from './task.types';
 
 export class TaskRepository {
-    constructor(
-        public db: Knex
-    ) { }
+    constructor(public db: Knex) {}
 
     async create(dto: TaskCreateRequest, trx?: Knex.Transaction): Promise<TaskRow> {
         const client = trx || this.db;

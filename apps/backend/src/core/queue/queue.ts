@@ -5,4 +5,7 @@ export const JOB = {
     ASSIGNMENT_EMAIL: 'ASSIGNMENT_EMAIL',
 };
 
-export const notificationQueue = new Queue('notifications', process.env.REDIS_URL || 'redis://localhost:6379');
+export const notificationQueue = new Queue(
+    'notifications',
+    process.env.REDIS_URL || 'redis://localhost:6379'
+);
