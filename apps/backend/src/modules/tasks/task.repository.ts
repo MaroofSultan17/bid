@@ -38,9 +38,9 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)::float    AS "lowestBid"
+             MIN(CASE WHEN b.status IN ('active', 'won') THEN b.hours_offered END)::float AS "lowestBid"
       FROM   tasks t
-      LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
+      LEFT   JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
       WHERE  t.id = ?
       GROUP  BY t.id
     `,
@@ -55,9 +55,9 @@ export class TaskRepository {
              t.created_by as "createdBy", t.assigned_to as "assignedTo",
              t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
              COUNT(b.id)::int        AS "bidCount",
-             MIN(b.hours_offered)::float    AS "lowestBid"
+             MIN(CASE WHEN b.status IN ('active', 'won') THEN b.hours_offered END)::float AS "lowestBid"
       FROM   tasks t
-      LEFT   JOIN bids b ON b.task_id = t.id AND b.status = 'active'
+      LEFT   JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
     `;
         const params: any[] = [];
         if (status) {

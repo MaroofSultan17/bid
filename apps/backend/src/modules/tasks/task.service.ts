@@ -48,16 +48,13 @@ export class TaskService {
                 );
             }
 
-            // Requirement: Only assigned user can start task
-            if (
-                ['in_progress', 'review', 'done'].includes(dto.status) &&
-                task.assignedTo !== dto.updated_by
-            ) {
-                throw new AppError(
-                    'Only the assigned user can update this task state',
-                    403,
-                    'ERR_UNAUTHORIZED'
-                );
+            // Requirement: Authorization for status transitions
+            if (dto.status === 'done' && task.createdBy !== dto.updated_by) {
+                throw new AppError('Only the task creator can mark the task as done', 403, 'ERR_UNAUTHORIZED');
+            }
+
+            if (['in_progress', 'review'].includes(dto.status) && task.assignedTo !== dto.updated_by) {
+                throw new AppError('Only the assigned user can move task to in_progress or review', 403, 'ERR_UNAUTHORIZED');
             }
 
             return this.taskRepository.advanceStatus(id, dto.status, trx);

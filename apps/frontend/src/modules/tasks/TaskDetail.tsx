@@ -171,12 +171,12 @@ export const TaskDetail: React.FC = () => {
                             Submit for Review
                         </button>
                     )}
-                    {task.status === 'review' && activeUser?.id === task.assignedTo && (
+                    {task.status === 'review' && activeUser?.id === task.createdBy && (
                         <button
                             onClick={() => advanceStatus.mutate('done')}
                             className="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-500/20"
                         >
-                            Complete Task
+                            Accept & Complete Task
                         </button>
                     )}
                 </div>
