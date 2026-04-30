@@ -4,7 +4,7 @@ import { TaskService } from '../../services/TaskService';
 import { TaskCard } from './TaskCard';
 import { useSSE } from '../../core/sse/useSSE';
 import { TaskCreateForm } from './TaskCreateForm';
-import { TaskStatus, TASK_STATUS_ORDER } from '../../types/dto/task.dto';
+import { TASK_STATUS_ORDER } from '../../types/dto/task.dto';
 
 export const TaskBoard: React.FC = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
