@@ -11,7 +11,7 @@ export class TaskRepository {
                 title: dto.title,
                 description: dto.description,
                 complexity: dto.complexity,
-                created_by: dto.created_by,
+                created_by: dto.createdBy,
                 deadline: dto.deadline,
             })
             .returning([

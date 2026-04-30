@@ -60,7 +60,7 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
     return (
         <div className="bg-[hsl(var(--accent))] border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[hsl(var(--primary))] opacity-5 blur-3xl -mr-16 -mt-16"></div>
-            
+
             <div className="flex justify-between items-center relative z-10">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     Your Capacity

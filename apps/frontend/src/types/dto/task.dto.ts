@@ -17,6 +17,15 @@ export const TASK_STATUS_ORDER: TaskStatus[] = [
     'done',
 ];
 
+export interface TaskBoardSummary {
+    id: string;
+    title: string;
+    complexity: number;
+    deadline: string | null;
+    bidCount: number;
+    lowestBid: number | null;
+}
+
 export interface TaskResponse {
     id: string;
     title: string;
@@ -37,10 +46,23 @@ export interface TaskCreateRequest {
     description?: string;
     complexity: number;
     deadline?: string;
-    created_by: string;
+    createdBy: string;
 }
 
 export interface TaskStatusUpdateRequest {
     status: TaskStatus;
-    updated_by: string;
+    updatedBy: string;
+}
+
+export interface GroupedTasksResponse {
+    draft: { count: number; tasks: TaskBoardSummary[] };
+    open: { count: number; tasks: TaskBoardSummary[] };
+    bidding_closed: { count: number; tasks: TaskBoardSummary[] };
+    assigned: { count: number; tasks: TaskBoardSummary[] };
+    in_progress: { count: number; tasks: TaskBoardSummary[] };
+    review: { count: number; tasks: TaskBoardSummary[] };
+    done: { count: number; tasks: TaskBoardSummary[] };
+    meta: {
+        totalTasks: number;
+    };
 }

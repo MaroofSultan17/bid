@@ -5,12 +5,14 @@ import { Layout } from './components/Layout';
 import { TaskBoard } from './modules/tasks/TaskBoard';
 import { TaskDetail } from './modules/tasks/TaskDetail';
 import { Dashboard } from './modules/dashboard/Dashboard';
+import { AuditLogViewer } from './modules/audit/AuditLogViewer';
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             retry: 1,
             refetchOnWindowFocus: false,
+            staleTime: 30000, // 30 seconds
         },
     },
 });
@@ -24,6 +26,7 @@ export default function App() {
                         <Route path="/" element={<TaskBoard />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/tasks/:id" element={<TaskDetail />} />
+                        <Route path="/audit" element={<AuditLogViewer />} />
                     </Routes>
                 </Layout>
                 <Toaster

@@ -9,6 +9,27 @@ export class BidService {
 
     async createBid(taskId: string, dto: BidCreateRequest): Promise<BidRow> {
         const bid = await this.bidRepository.db.transaction(async (trx) => {
+            const task = await trx('tasks')
+                .where({ id: taskId })
+                .select('status', 'deadline')
+                .first();
+
+            if (!task) {
+                throw new AppError('The specified task was not found.', 404, 'ERR_NOT_FOUND');
+            }
+
+            if (task.status !== 'open') {
+                throw new AppError('Bidding is only allowed on open tasks.', 409, 'ERR_NOT_OPEN');
+            }
+
+            if (task.deadline && new Date(task.deadline).getTime() < Date.now()) {
+                throw new AppError(
+                    'Cannot place bid. The task deadline has expired.',
+                    409,
+                    'ERR_DEADLINE_PASSED'
+                );
+            }
+
             await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.user_id]);
 
             const user = await this.bidRepository

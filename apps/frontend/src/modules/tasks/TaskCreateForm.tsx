@@ -13,6 +13,11 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
     const { activeUser } = useUserStore();
     const qc = useQueryClient();
 
+    const today = new Date();
+    const minDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split('T')[0];
+
     const mutation = useMutation({
         mutationFn: () => {
             if (!activeUser) throw new Error('Please select a user first');
@@ -21,7 +26,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 description: description || undefined,
                 complexity,
                 deadline: deadline ? new Date(deadline).toISOString() : undefined,
-                created_by: activeUser.id,
+                createdBy: activeUser.id,
             });
         },
         onSuccess: () => {
@@ -39,9 +44,11 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[hsl(var(--primary))] opacity-[0.03] blur-3xl rounded-full -mr-20 -mt-20"></div>
-                
+
                 <div className="flex justify-between items-center mb-10 relative z-10">
-                    <h2 className="text-2xl font-black tracking-tighter text-white">Create New Task</h2>
+                    <h2 className="text-2xl font-black tracking-tighter text-white">
+                        Create New Task
+                    </h2>
                     <button
                         onClick={onClose}
                         className="w-10 h-10 rounded-full glass flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
@@ -95,6 +102,7 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             </label>
                             <input
                                 type="date"
+                                min={minDate}
                                 className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]/50 focus:border-[hsl(var(--primary))] transition-all font-bold text-white text-base [color-scheme:dark] appearance-none"
                                 value={deadline}
                                 onChange={(e) => setDeadline(e.target.value)}
@@ -106,6 +114,13 @@ export const TaskCreateForm: React.FC<{ onClose: () => void }> = ({ onClose }) =
                         onClick={() => {
                             if (!title || title.length < 3) {
                                 notifyError('Title must be at least 3 characters');
+                                return;
+                            }
+                            if (
+                                deadline &&
+                                new Date(deadline).getTime() < new Date().setHours(0, 0, 0, 0)
+                            ) {
+                                notifyError('Task deadline cannot be in the past');
                                 return;
                             }
                             mutation.mutate();

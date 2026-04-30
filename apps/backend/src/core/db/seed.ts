@@ -7,7 +7,7 @@ const logger = pino({ name: 'seeder' });
 
 async function runSeed() {
     const seedFile = path.join(__dirname, 'seeds/seed.sql');
-    
+
     if (!fs.existsSync(seedFile)) {
         logger.error(`Seed file not found at: ${seedFile}`);
         process.exit(1);

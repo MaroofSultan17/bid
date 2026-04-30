@@ -1,10 +1,14 @@
 import { apiClient } from '../core/api/apiClient';
-import { TaskResponse, TaskCreateRequest, TaskStatusUpdateRequest } from '../types/dto/task.dto';
+import {
+    TaskResponse,
+    TaskCreateRequest,
+    TaskStatusUpdateRequest,
+    GroupedTasksResponse,
+} from '../types/dto/task.dto';
 
 export const TaskService = {
-    async getTasks(status?: string): Promise<TaskResponse[]> {
-        const params = status ? { status } : {};
-        return apiClient.get('/tasks', { params });
+    async getTasks(): Promise<GroupedTasksResponse> {
+        return apiClient.get('/tasks');
     },
 
     async getTask(id: string): Promise<TaskResponse> {
@@ -19,7 +23,7 @@ export const TaskService = {
         return apiClient.patch(`/tasks/${id}/status`, data);
     },
 
-    async assignTask(id: string, initiator_id: string): Promise<any> {
-        return apiClient.post(`/tasks/${id}/assign`, { initiator_id });
+    async assignTask(id: string, initiatorId: string): Promise<any> {
+        return apiClient.post(`/tasks/${id}/assign`, { initiatorId });
     },
 };
