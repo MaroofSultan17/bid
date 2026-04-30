@@ -71,8 +71,8 @@ export const BidList: React.FC<{ taskId: string }> = ({ taskId }) => {
                         </div>
 
                         <div className="text-right">
-                            <p className="text-2xl font-black text-[hsl(var(--primary))] group-hover:text-[hsl(var(--accent))] transition-colors">
-                                {bid.hoursOffered}h
+                            <p className="text-2xl font-black text-[hsl(var(--primary))] group-hover:text-white transition-colors">
+                                {Number(bid.hoursOffered).toFixed(2)}h
                             </p>
                             <p className="text-[10px] opacity-30 font-medium">
                                 {new Date(bid.placedAt).toLocaleTimeString()}

@@ -32,31 +32,31 @@ export const UserSwitcher: React.FC = () => {
         );
 
     return (
-        <div className="flex items-center gap-4 bg-[hsl(var(--secondary))/0.5] p-1.5 pl-4 rounded-2xl border border-[hsl(var(--primary))/0.1]">
+        <div className="flex items-center gap-5 glass-card p-2 pr-2 pl-6 rounded-2xl">
             <div className="text-right hidden sm:block leading-none">
-                <p className="text-[9px] font-black opacity-40 uppercase tracking-[0.2em] mb-1">
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1.5">
                     Simulated As
                 </p>
                 {activeUser && (
-                    <p className="text-xs font-black text-[hsl(var(--accent))]">
+                    <p className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-widest">
                         {activeUser.remainingCapacityHours}h LEFT
                     </p>
                 )}
             </div>
             <select
-                className="bg-[hsl(var(--background))] border border-[hsl(var(--primary))/0.1] px-4 py-2 rounded-xl text-sm font-black text-white focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] transition-all cursor-pointer shadow-inner"
+                className="bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl text-xs font-black text-white focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]/50 focus:border-[hsl(var(--primary))] transition-all cursor-pointer outline-none shadow-inner"
                 value={activeUser?.id || ''}
                 onChange={(e) => {
                     const u = users.find((u) => u.id === e.target.value);
                     if (u) setActiveUser(u);
                 }}
             >
-                <option value="" disabled>
-                    -- Switch User --
+                <option value="" disabled className="bg-[#0B0B1E] text-slate-400">
+                    Switch User
                 </option>
                 {Array.isArray(users) &&
                     users.map((u) => (
-                        <option key={u.id} value={u.id}>
+                        <option key={u.id} value={u.id} className="bg-[#0B0B1E] text-white">
                             {u.name}
                         </option>
                     ))}
