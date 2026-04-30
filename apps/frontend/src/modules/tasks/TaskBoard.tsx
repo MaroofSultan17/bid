@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TaskService } from '../../services/TaskService';
 import { TaskCard } from './TaskCard';
+import { useSSE } from '../../core/sse/useSSE';
 import { TaskCreateForm } from './TaskCreateForm';
 import { TaskStatus, TASK_STATUS_ORDER } from '../../types/dto/task.dto';
 
 export const TaskBoard: React.FC = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const qc = useQueryClient();
 
     const { data: tasks, isLoading } = useQuery({
         queryKey: ['tasks'],
         queryFn: () => TaskService.getTasks(),
-        refetchInterval: 15000,
+    });
+
+    useSSE('/api/events', {
+        'dashboard:update': () => {
+            qc.invalidateQueries({ queryKey: ['tasks'] });
+        },
     });
 
     if (isLoading) {
