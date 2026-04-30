@@ -23,7 +23,7 @@ export class AssignService {
             const task = await this.taskRepository.lockForAssign(taskId, trx);
             if (!task) {
                 throw new AppError(
-                    'Task not found or not in bidding_closed status',
+                    'This task cannot be assigned. It may not exist or its bidding is not yet closed.',
                     409,
                     'ERR_NOT_ASSIGNABLE'
                 );
@@ -31,7 +31,7 @@ export class AssignService {
 
             const bids = await this.bidRepository.findActiveBidsForAssign(taskId, trx);
             if (bids.length === 0) {
-                throw new AppError('No bids to evaluate', 422, 'ERR_NO_BIDS');
+                throw new AppError('Assignment failed: No bids found to evaluate for this task.', 422, 'ERR_NO_BIDS');
             }
 
             for (const bid of bids) {
@@ -60,7 +60,7 @@ export class AssignService {
             }
 
             throw new AppError(
-                'No valid bidder with sufficient capacity',
+                'Assignment failed: None of the active bidders have sufficient remaining capacity.',
                 422,
                 'ERR_NO_VALID_BIDDER'
             );

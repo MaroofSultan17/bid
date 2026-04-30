@@ -31,30 +31,27 @@ export class TaskService {
 
     async advanceStatus(id: string, dto: TaskStatusUpdateRequest): Promise<TaskRow> {
         return this.taskRepository.db.transaction(async (trx) => {
-            // Requirement 2.1: Audit log user attribution (Using set_config for safety)
             await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.updated_by]);
 
             const task = await this.taskRepository.findById(id);
             if (!task) {
-                throw new AppError('Task not found', 404, 'ERR_NOT_FOUND');
+                throw new AppError('The requested task does not exist.', 404, 'ERR_NOT_FOUND');
             }
 
-            // Requirement: Task creator controls bidding closure
             if (dto.status === 'bidding_closed' && task.createdBy !== dto.updated_by) {
                 throw new AppError(
-                    'Only the task creator can close bidding',
+                    'Access denied: Only the task creator can close bidding.',
                     403,
                     'ERR_UNAUTHORIZED'
                 );
             }
 
-            // Requirement: Authorization for status transitions
             if (dto.status === 'done' && task.createdBy !== dto.updated_by) {
-                throw new AppError('Only the task creator can mark the task as done', 403, 'ERR_UNAUTHORIZED');
+                throw new AppError('Access denied: Final acceptance must be performed by the task creator.', 403, 'ERR_UNAUTHORIZED');
             }
 
             if (['in_progress', 'review'].includes(dto.status) && task.assignedTo !== dto.updated_by) {
-                throw new AppError('Only the assigned user can move task to in_progress or review', 403, 'ERR_UNAUTHORIZED');
+                throw new AppError('Access denied: Only the assigned user can update the progress or submit for review.', 403, 'ERR_UNAUTHORIZED');
             }
 
             return this.taskRepository.advanceStatus(id, dto.status, trx);

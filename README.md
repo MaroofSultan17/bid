@@ -39,8 +39,22 @@ TaskBid is a real-time collaborative task auction system where team members bid 
    - Frontend: `http://localhost:5173`
    - Backend API: `http://localhost:3001/api`
 
-## Architecture Decisions
-Detailed explanations for concurrency handling, stale bids, and audit logging can be found in [DECISIONS.md](./DECISIONS.md).
+## Technical Choices & Justifications
+
+### 1. Real-Time Updates (SSE)
+We chose **Server-Sent Events (SSE)** over WebSockets or Polling for several reasons:
+- **Efficiency**: SSE provides a persistent connection for real-time updates without the overhead of constant HTTP requests (polling).
+- **Simplicity**: Unlike WebSockets, SSE works over standard HTTP, making it easier to manage through proxies and load balancers.
+- **Suitability**: Our use case is primarily unidirectional (server notifying clients about new bids or status changes). SSE is perfectly optimized for this pattern while handling automatic reconnection natively.
+
+### 2. High-Scale Background Processing (Redis & Bull)
+To ensure the system remains responsive under heavy load (e.g., hundreds of concurrent users bidding), we implemented a background job architecture:
+- **Scalability**: Heavy operations like sending emails and notifying outbid users are offloaded to **Bull** (powered by **Redis**). This prevents blocking the main event loop and ensures fast API response times.
+- **Reliability**: Background jobs provide automatic retries and failure handling, ensuring that critical notifications are delivered even if an external service (like SMTP) is temporarily down.
+
+### 3. Database Integrity (Triggers & Row Locking)
+- **Atomicity**: We use `SELECT ... FOR UPDATE` row-level locking during task assignment to prevent race conditions where multiple users might be over-assigned capacity simultaneously.
+- **Business Logic Defense**: Core business rules (like no self-bidding and forward-only lifecycle) are enforced via **PostgreSQL Triggers**. This provides a final line of defense, ensuring data integrity even if application-level checks are bypassed.
 
 ## API Reference
 

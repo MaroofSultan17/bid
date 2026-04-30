@@ -8,9 +8,7 @@ export class BidService {
     constructor(private bidRepository: BidRepository) {}
 
     async createBid(taskId: string, dto: BidCreateRequest): Promise<BidRow> {
-        // Requirement 4.2: Server-side validation
         const bid = await this.bidRepository.db.transaction(async (trx) => {
-            // Set session variable for audit log (Requirement 2.1 - Using set_config)
             await trx.raw(`SELECT set_config('app.current_user_id', ?, true)`, [dto.user_id]);
 
             const user = await this.bidRepository.db('users')
@@ -19,13 +17,13 @@ export class BidService {
                 .first();
 
             if (!user) {
-                throw new AppError('User not found', 404, 'ERR_USER_NOT_FOUND');
+                throw new AppError('The specified user profile was not found.', 404, 'ERR_USER_NOT_FOUND');
             }
 
             const remaining = Number(user.max_capacity_hours) - Number(user.current_workload_hours);
             if (dto.hours_offered > remaining) {
                 throw new AppError(
-                    `Bid exceeds your remaining capacity of ${remaining}h`,
+                    `Bid exceeds your remaining available capacity (${remaining}h).`,
                     422,
                     'ERR_OVER_CAPACITY'
                 );

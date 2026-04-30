@@ -15,18 +15,17 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
 
     const mutation = useMutation({
         mutationFn: () => {
-            if (!activeUser) throw new Error('Please select a user first');
-            if (activeUser.id === taskCreatorId) throw new Error('You cannot bid on your own task');
+            if (!activeUser) throw new Error('Please select a user profile to place a bid.');
+            if (activeUser.id === taskCreatorId) throw new Error('Action denied: Task creators cannot bid on their own tasks.');
             return BidService.placeBid(taskId, {
                 hours_offered: Number(hours),
                 user_id: activeUser.id,
             });
         },
         onSuccess: async () => {
-            notifySuccess('Bid placed successfully');
+            notifySuccess('Your bid has been successfully submitted.');
             setHours('');
             qc.invalidateQueries({ queryKey: ['bids', taskId] });
-            // Refresh user workload
             if (activeUser) {
                 const updatedUser = await UserService.getWorkload(activeUser.id);
                 setActiveUser(updatedUser);
@@ -34,10 +33,9 @@ export const BidForm: React.FC<{ taskId: string; taskCreatorId: string }> = ({
         },
         onError: async (e: any) => {
             const message = e.message.includes('ERR_SELF_BID')
-                ? 'You cannot bid on your own task'
+                ? 'Action denied: Task creators cannot bid on their own tasks.'
                 : e.message;
             notifyError(message);
-            // If capacity error, refresh user info
             if (activeUser) {
                 const updatedUser = await UserService.getWorkload(activeUser.id);
                 setActiveUser(updatedUser);
