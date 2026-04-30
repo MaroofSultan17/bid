@@ -32,17 +32,32 @@ export class TaskRepository {
     async findById(id: string): Promise<TaskWithBidStats | null> {
         const res = await this.db.raw(
             `
-      SELECT t.id, t.title, t.description, t.complexity, t.status,
-             t.created_by as "createdBy", t.assigned_to as "assignedTo",
-             t.deadline, t.created_at as "createdAt", t.updated_at as "updatedAt",
-             COUNT(b.id)::int        AS "bidCount",
-             MIN(CASE WHEN b.status IN ('active', 'won') THEN b.hours_offered END)::float AS "lowestBid"
-      FROM   tasks t
-      LEFT   JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
-      WHERE  t.id = ?
-      GROUP  BY t.id
+      WITH task_summary AS (
+        SELECT t.*,
+               COUNT(b.id)::int AS "bidCount"
+        FROM tasks t
+        LEFT JOIN bids b ON b.task_id = t.id AND b.status != 'invalid'
+        WHERE t.id = ?
+        GROUP BY t.id
+      ),
+      lowest_bid AS (
+        SELECT task_id, hours_offered, user_id
+        FROM bids
+        WHERE task_id = ? AND status != 'invalid'
+        ORDER BY hours_offered ASC
+        LIMIT 1
+      )
+      SELECT ts.id, ts.title, ts.description, ts.complexity, ts.status,
+             ts.created_by as "createdBy", ts.assigned_to as "assignedTo",
+             ts.deadline, ts.created_at as "createdAt", ts.updated_at as "updatedAt",
+             ts."bidCount",
+             lb.hours_offered::float AS "lowestBid",
+             u.hourly_rate::float AS "lowestBidderRate"
+      FROM task_summary ts
+      LEFT JOIN lowest_bid lb ON lb.task_id = ts.id
+      LEFT JOIN users u ON u.id = lb.user_id
     `,
-            [id]
+            [id, id]
         );
         return res.rows[0] || null;
     }

@@ -27,7 +27,7 @@ export class BidRepository {
         const res = await this.db.raw(
             `
       SELECT b.id, b.task_id as "taskId", b.user_id as "userId", b.hours_offered as "hoursOffered", b.status, b.placed_at as "placedAt",
-             u.name AS "userName", u.email AS "userEmail"
+             u.name AS "userName", u.email AS "userEmail", u.hourly_rate as "hourlyRate"
       FROM   bids b
       JOIN   users u ON u.id = b.user_id
       WHERE  b.task_id = ?
@@ -42,7 +42,7 @@ export class BidRepository {
         const res = await trx.raw(
             `
       SELECT b.id, b.task_id as "taskId", b.user_id as "userId", b.hours_offered as "hoursOffered", b.status, b.placed_at as "placedAt",
-             u.name AS "userName", u.email AS "userEmail",
+             u.name AS "userName", u.email AS "userEmail", u.hourly_rate as "hourlyRate",
              u.current_workload_hours as "currentWorkloadHours", u.max_capacity_hours as "maxCapacityHours"
       FROM   bids b
       JOIN   users u ON u.id = b.user_id

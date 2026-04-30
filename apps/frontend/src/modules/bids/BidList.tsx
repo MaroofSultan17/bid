@@ -35,47 +35,64 @@ export const BidList: React.FC<{ taskId: string }> = ({ taskId }) => {
                 sortedBids.map((bid) => (
                     <div
                         key={bid.id}
-                        className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${
+                        className={`p-6 rounded-[32px] border transition-all flex items-center justify-between group relative overflow-hidden ${
                             bid.userId === activeUser?.id
-                                ? 'bg-[hsl(var(--primary))/0.1] border-[hsl(var(--primary))] shadow-lg shadow-[hsl(var(--primary))/0.05]'
-                                : 'bg-[hsl(var(--secondary))] border-[hsl(var(--primary))/0.05] hover:border-[hsl(var(--primary))/0.2]'
+                                ? 'bg-[hsl(var(--primary))/0.08] border-[hsl(var(--primary))/0.3] shadow-2xl shadow-[hsl(var(--primary))/0.1]'
+                                : 'bg-[hsl(var(--secondary))] border-white/5 hover:border-white/10 shadow-lg'
                         }`}
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-[hsl(var(--background))] flex items-center justify-center font-black text-xs border border-[hsl(var(--primary))/0.1]">
+                        <div className="flex items-center gap-5 relative z-10 min-w-[140px]">
+                            <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center font-black text-sm text-white border border-white/10 shadow-inner">
                                 {bid.userName.charAt(0)}
                             </div>
-                            <div>
-                                <p className="font-bold text-white flex items-center gap-2">
+                            <div className="space-y-1">
+                                <p className="font-black text-base text-white/90 flex items-center gap-2 tracking-tight leading-none">
                                     {bid.userName}
                                     {bid.userId === activeUser?.id && (
-                                        <span className="text-[8px] bg-[hsl(var(--primary))] px-1.5 py-0.5 rounded uppercase font-black">
-                                            You
+                                        <span className="text-[9px] bg-[hsl(var(--primary))] text-white px-2 py-0.5 rounded-lg uppercase font-black tracking-tighter">
+                                            YOU
                                         </span>
                                     )}
                                 </p>
-                                <p
-                                    className={`text-[10px] font-black uppercase tracking-widest ${
+                                <span
+                                    className={`text-[9px] font-black uppercase tracking-[0.15em] ${
                                         bid.status === 'won'
-                                            ? 'text-emerald-500'
+                                            ? 'text-emerald-400'
                                             : bid.status === 'outbid'
-                                              ? 'text-amber-500'
+                                              ? 'text-amber-400'
                                               : bid.status === 'invalid'
-                                                ? 'text-red-500'
-                                                : 'opacity-40'
+                                                ? 'text-red-400'
+                                                : 'text-slate-500'
                                     }`}
                                 >
-                                    {bid.status}
-                                </p>
+                                    {bid.status.replace('_', ' ')}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="text-right">
-                            <p className="text-2xl font-black text-[hsl(var(--primary))] group-hover:text-white transition-colors">
-                                {Number(bid.hoursOffered).toFixed(2)}h
-                            </p>
-                            <p className="text-[10px] opacity-30 font-medium">
-                                {new Date(bid.placedAt).toLocaleTimeString()}
+                        {/* Calculation Middle Section */}
+                        <div className="hidden md:flex flex-col items-center justify-center px-8 border-x border-white/5 relative z-10">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                                Proposal Math
+                            </span>
+                            <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                                <span className="text-sm font-black text-white">{Number(bid.hoursOffered).toFixed(1)}h</span>
+                                <span className="text-xs font-bold text-slate-600">×</span>
+                                <span className="text-sm font-black text-white">${Number(bid.hourlyRate)}/h</span>
+                            </div>
+                        </div>
+
+                        <div className="text-right relative z-10 flex flex-col items-end">
+                            <div className="flex flex-col items-end gap-1">
+                                <span className="text-xs font-black text-slate-500 uppercase tracking-widest leading-none">
+                                    Total Est.
+                                </span>
+                                <span className="text-3xl font-black text-[hsl(var(--primary))] tracking-tighter leading-none">
+                                    ${(Number(bid.hoursOffered) * Number(bid.hourlyRate)).toFixed(0)}
+                                </span>
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-600 mt-2 uppercase tracking-tighter md:hidden">
+                                {Number(bid.hoursOffered).toFixed(1)}h @ ${Number(bid.hourlyRate)}
                             </p>
                         </div>
                     </div>

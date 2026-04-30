@@ -38,8 +38,10 @@ export const UserSwitcher: React.FC = () => {
                     Simulated As
                 </p>
                 {activeUser && (
-                    <p className="text-[10px] font-black text-[hsl(var(--primary))] uppercase tracking-widest">
-                        {activeUser.remainingCapacityHours}h LEFT
+                    <p className="text-[10px] font-black text-white/80 uppercase tracking-widest">
+                        <span className="text-[hsl(var(--primary))]">{activeUser.currentWorkloadHours}</span>
+                        <span className="opacity-30 mx-1">/</span>
+                        {activeUser.maxCapacityHours}h
                     </p>
                 )}
             </div>
