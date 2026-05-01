@@ -8,7 +8,7 @@ export class AuditLogController {
     getLogs = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 50;
+            const limit = parseInt(req.query.limit as string) || 15;
 
             const { logs, total } = await this.repository.findAll(page, limit);
             const totalPages = Math.ceil(total / limit);

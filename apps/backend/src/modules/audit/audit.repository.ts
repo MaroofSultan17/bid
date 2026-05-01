@@ -20,7 +20,7 @@ export interface PaginatedAuditLogs {
 export class AuditLogRepository {
     constructor(private db: Knex) {}
 
-    async findAll(page: number = 1, limit: number = 50): Promise<PaginatedAuditLogs> {
+    async findAll(page: number = 1, limit: number = 15): Promise<PaginatedAuditLogs> {
         const offset = (page - 1) * limit;
 
         const countRes = await this.db.raw('SELECT COUNT(*)::int as count FROM audit_logs');

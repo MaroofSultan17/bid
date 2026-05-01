@@ -23,11 +23,8 @@ export interface PaginatedAuditLogs {
 }
 
 export const AuditLogService = {
-    async getLogs(page: number = 1, limit: number = 20): Promise<PaginatedAuditLogs> {
+    async getLogs(page: number = 1, limit: number = 15): Promise<PaginatedAuditLogs> {
         const response = await apiClient.get('/admin/audit-logs', { params: { page, limit } });
-        // Axios interceptor returns the .data.data part, but we need .data here if it contains meta
-        // Actually, our apiClient interceptor returns response.data.data.
-        // Let's check apiClient.ts again.
         return response as any;
     },
 };

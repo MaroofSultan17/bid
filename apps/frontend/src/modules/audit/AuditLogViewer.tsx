@@ -4,7 +4,7 @@ import { AuditLogService } from '../../services/AuditLogService';
 
 export const AuditLogViewer: React.FC = () => {
     const [page, setPage] = useState(1);
-    const limit = 20;
+    const limit = 15;
 
     const { data: paginatedData, isLoading } = useQuery({
         queryKey: ['audit-logs', page],
