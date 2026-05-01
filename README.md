@@ -28,21 +28,21 @@ docker-compose up -d --build
 docker exec -it buggcy-backend-1 npm run migrate
 
 # Seed initial data
-docker exec -it buggcy-backend-1 npx ts-node src/core/db/seed.ts
+docker exec -it buggcy-backend-1 npm run seed
 ```
 
 ### 3. Verification
 Run the concurrency test to verify atomic assignment logic:
 ```bash
-docker exec -it buggcy-backend-1 npm run test:race
+docker exec -it buggcy-backend-1 npx ts-node src/tests/race-condition-test.ts
 ```
 
 ## 🔗 Access Points
-| Service | URL |
-|---------|-----|
-| **Frontend** | [http://localhost:5173](http://localhost:5173) |
-| **Backend API** | [http://localhost:3001/api](http://localhost:3001/api) |
-| **Audit Logs** | [http://localhost:5173/audit](http://localhost:5173/audit) |
+| Environment | Frontend URL | Backend API |
+|-------------|--------------|-------------|
+| **Production** | [http://taskbid.duckdns.org](http://taskbid.duckdns.org) | [http://taskbid.duckdns.org/api](http://taskbid.duckdns.org/api) |
+| **Local Dev** | [http://localhost](http://localhost) | [http://localhost/api](http://localhost/api) |
+
 
 ---
 *   **System Design**: See [ARCHITECTURE.md](./ARCHITECTURE.md)
