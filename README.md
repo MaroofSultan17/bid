@@ -34,7 +34,7 @@ docker exec -it buggcy-backend-1 npm run seed
 ### 3. Verification
 Run the concurrency test to verify atomic assignment logic:
 ```bash
-docker exec -it buggcy-backend-1 npx ts-node src/tests/race-condition-test.ts
+docker exec -it buggcy-backend-1 npm run test:race
 ```
 
 ## 🔗 Access Points
