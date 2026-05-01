@@ -9,7 +9,9 @@
     "lint": "eslint src --ext ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "migrate": "ts-node src/core/db/migrate.ts",
+    "migrate:prod": "node dist/core/db/migrate.js",
     "seed": "ts-node src/core/db/seed.ts",
+    "seed:prod": "node dist/core/db/seed.js",
     "test:race": "ts-node src/tests/race-condition-test.ts"
   },
   "dependencies": {
