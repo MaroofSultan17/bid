@@ -45,7 +45,7 @@ async function runTest() {
             const taskRes = await axios.post(`${API_BASE}/tasks`, {
                 title,
                 complexity: 1,
-                created_by: creatorId,
+                createdBy: creatorId,
             });
             const taskId = taskRes.data.data.id;
             taskIds.push(taskId);
@@ -53,7 +53,7 @@ async function runTest() {
             // Open task
             await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
                 status: 'open',
-                updated_by: creatorId,
+                updatedBy: creatorId,
             });
 
             // Place bid
@@ -65,7 +65,7 @@ async function runTest() {
             // Close bidding
             await axios.patch(`${API_BASE}/tasks/${taskId}/status`, {
                 status: 'bidding_closed',
-                updated_by: creatorId,
+                updatedBy: creatorId,
             });
 
             logger.info({ taskId }, `Prepared ${title}`);
@@ -74,8 +74,8 @@ async function runTest() {
         // 3. Execution: Fire simultaneous assignment calls
         logger.info('Firing simultaneous assignment calls...');
         const results = await Promise.allSettled([
-            axios.post(`${API_BASE}/tasks/${taskIds[0]}/assign`, { initiator_id: creatorId }),
-            axios.post(`${API_BASE}/tasks/${taskIds[1]}/assign`, { initiator_id: creatorId }),
+            axios.post(`${API_BASE}/tasks/${taskIds[0]}/assign`, { initiatorId: creatorId }),
+            axios.post(`${API_BASE}/tasks/${taskIds[1]}/assign`, { initiatorId: creatorId }),
         ]);
 
         const successes = results.filter((r) => r.status === 'fulfilled');

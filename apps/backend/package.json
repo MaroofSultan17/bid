@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "migrate": "node dist/core/db/migrate.js",
     "seed": "node dist/core/db/seed.js",
-    "test:race": "ts-node src/tests/race-condition-test.ts"
+    "test:race": "node dist/tests/race-condition-test.js"
   },
   "dependencies": {
     "axios": "^1.15.2",
